@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/Varsilias/varsilias.dev/issues"
   },
-  "homepage": "https://github.com/Varsilias/varsilias.dev#readme"
+  "homepage": "https://github.com/Varsilias/varsilias.dev#readme",
+  "engines": {
+    "node": ">=20.17.0"
+  }
 }
