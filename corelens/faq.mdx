@@ -1,30 +1,51 @@
 ---
 title: "FAQ"
-description: "Answers to common Corelens adoption and design questions."
+description: "Answers to common Corelens questions about OpenTelemetry, logging libraries, exporters, and production use."
 sidebarTitle: "FAQ"
 ---
 
 ## Is Corelens a replacement for OpenTelemetry?
 
-No. Corelens is an application-level instrumentation layer that should work with OpenTelemetry-compatible export paths. Use OpenTelemetry directly if your team already has a complete setup and does not need a smaller wrapper.
+No. OpenTelemetry is the standard ecosystem for telemetry data formats, propagation, instrumentation packages, collectors, and vendor pipelines.
 
-## Does Corelens store telemetry?
+Corelens uses OTLP-compatible export and W3C trace propagation, but it is intentionally smaller and more opinionated. Use Corelens when you want a direct SDK for application logs, metrics, and traces without building a full OpenTelemetry setup yourself.
 
-No. Corelens emits telemetry from your service. Storage, querying, and retention belong to your collector or observability backend.
+Use OpenTelemetry directly if you need broad auto-instrumentation coverage, vendor-specific distributions, or deep collector customization.
 
-## Can I use Corelens without a vendor?
+## Is Corelens a replacement for Pino or Winston?
 
-Yes. Use the console exporter locally or send OTLP telemetry to your own OpenTelemetry collector.
+Not for every logging use case.
 
-## Should every function become a span?
+Pino and Winston are mature logging libraries. Corelens has a different scope: it provides a logger plus metrics, traces, HTTP adapters, exporters, and shutdown-aware telemetry pipelines in one package.
 
-No. Instrument operations that explain system behavior: external calls, queue work, reconciliation steps, expensive computations, and meaningful domain transitions.
+The repository includes logger benchmarks against Pino and Winston. Treat those numbers as reproducible results for that benchmark script, not as universal performance claims.
+
+## Can I use Corelens without a framework?
+
+Yes. You can use the logger, metrics, manual spans, exporters, stats, and shutdown APIs without a framework adapter.
+
+Framework adapters are only needed for HTTP request metrics and server spans in Express, Fastify, or Hono.
+
+## Does Corelens support Prometheus?
+
+Corelens can render metrics as Prometheus text through `PrometheusTextExporter`.
+
+It keeps metrics in process, then you expose a route such as `/metrics` and render the current snapshot.
+
+## Does Corelens export to Grafana Tempo?
+
+Corelens exports OTLP HTTP. In most deployments, Corelens sends traces to an OpenTelemetry Collector, then the collector forwards traces to Tempo.
 
 ## Is the SDK stable?
 
 Yes. Treat the documented SDK contract as stable for application integration. Breaking changes should include migration notes before release.
 
+## What should I avoid putting in telemetry?
+
+Avoid secrets, access tokens, full request bodies, customer data, and unbounded identifiers in logs, span attributes, metric labels, and exporter headers.
+
 ## Next steps
 
-- [Architecture](/corelens/architecture)
+- [Overview](/corelens/overview)
+- [Production](/corelens/production)
 - [Troubleshooting](/corelens/troubleshooting)

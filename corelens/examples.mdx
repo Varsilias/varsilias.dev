@@ -1,0 +1,41 @@
+---
+title: "Examples"
+description: "Find Corelens example applications and integration smoke tests in the project repository."
+sidebarTitle: "Examples"
+---
+
+The Corelens repository includes examples for supported frameworks and local integration testing.
+
+Use examples when you want to see the SDK in a complete app rather than isolated snippets.
+
+## Framework examples
+
+| Example | What it shows |
+|---------|---------------|
+| Express ecommerce example | Express adapters, metrics endpoint, and application telemetry |
+| Fastify todo example | Fastify adapter registration and service instrumentation |
+| Hono gateway example | Hono adapter registration for gateway-style services |
+
+## Integration examples
+
+| Example | What it shows |
+|---------|---------------|
+| OTLP collector smoke test | Sending telemetry through an OpenTelemetry Collector |
+| Benchmarks | Local benchmark scripts and comparison scenarios |
+
+## Repository paths
+
+```text
+examples/express/README.md
+examples/fastify/README.md
+examples/hono/README.md
+tests/integration/otlp-collector/README.md
+bench/README.md
+```
+
+These paths refer to the Corelens source repository, not this documentation repository.
+
+## Next steps
+
+- [Framework adapters](/corelens/framework-adapters/overview)
+- [Exporters](/corelens/concepts/exporters)

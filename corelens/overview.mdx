@@ -1,69 +1,94 @@
 ---
 title: "Corelens"
-description: "Lightweight observability instrumentation for Node.js services that need portable traces and metrics."
+description: "Opinionated observability for Node.js applications with structured logs, metrics, traces, and OTLP export."
 sidebarTitle: "Overview"
 keywords:
   - Corelens
   - Node.js observability
   - OpenTelemetry
+  - structured logging
+  - metrics
   - distributed tracing
-  - application metrics
   - Daniel Okoronkwo
 ---
 
-Corelens instruments Node.js services so you can see request flow, latency, errors, and runtime behavior without tying your application to one observability vendor.
+Corelens is an observability SDK for Node.js applications. It gives you structured logs, application metrics, HTTP metrics, runtime metrics, traces, and production-aware exporters without forcing you to wire every observability concern by hand on day one.
 
-## What Corelens does
+Corelens is not a full OpenTelemetry replacement. It is a smaller, opinionated SDK for common application telemetry paths. It can export to destinations that already speak OTLP, and it uses W3C trace propagation for client spans.
 
-Corelens gives you a small instrumentation layer for HTTP services, background jobs, and custom application operations. It captures spans and metrics close to your code, then exports them through OpenTelemetry-compatible paths.
+## What Corelens gives you
 
-## Why it exists
+- Structured logs with optional trace correlation.
+- Counters, gauges, and histograms for application metrics.
+- HTTP request metrics and tracing for supported frameworks.
+- Runtime metrics for Node.js process health.
+- Prometheus text rendering for scrape-based metrics.
+- Console, file, and OTLP HTTP export.
+- Bounded queues for production export paths.
+- Retry and circuit breaker behavior for network exporters.
+- Graceful shutdown so batched telemetry can flush.
+- Debug stats for dropped items, exporter failures, queue state, and shutdown results.
 
-Observability libraries often become vendor glue. Corelens keeps the instrumentation boundary explicit: your application emits useful signals, exporters decide where those signals go, and the two concerns stay separate.
+## When to use Corelens
 
-That tradeoff means Corelens favors clear primitives over broad automatic magic. You get predictable instrumentation and a smaller surface area, but you still need to decide which operations matter to your system.
+Use Corelens when you want useful service telemetry quickly, but still want the instrumentation to stay readable.
 
-## When to use it
+It fits well when:
 
-- You run Node.js services and need portable tracing or metrics.
-- You want instrumentation code that is easy to inspect in reviews.
-- You need a bridge between application-level events and OpenTelemetry pipelines.
-- You want to start with a minimal SDK before introducing a full observability platform.
+- you run Node.js APIs, workers, or gateways
+- you want logs, metrics, and traces from one package
+- you need OTLP export without building a full OpenTelemetry setup
+- you want explicit framework adapters instead of global auto-instrumentation
+- you need bounded queues, retry, circuit breakers, and shutdown behavior
 
-## When not to use it
+## When to use OpenTelemetry directly
 
-- You need complete auto-instrumentation for every dependency on day one.
-- Your service already has a stable OpenTelemetry setup that your team understands.
-- You need browser telemetry, mobile telemetry, or log indexing as a primary feature.
+Use OpenTelemetry directly if you need broad auto-instrumentation coverage, vendor-specific OpenTelemetry distributions, custom collector pipelines, or deep control over every instrumentation package.
 
-## How it works
+Corelens works best as a practical application SDK. OpenTelemetry remains the larger ecosystem for telemetry formats, propagation, collectors, and vendor pipelines.
 
-Corelens sits inside the service process. It creates telemetry from request middleware, explicit spans, counters, and exporter configuration.
+## Core mental model
+
+Corelens has four main parts:
 
 ```mermaid
 flowchart LR
   A[Application code] --> B[Corelens SDK]
-  B --> C[Trace spans]
+  B --> C[Logs]
   B --> D[Metrics]
-  C --> E[Exporter]
-  D --> E
-  E --> F[OpenTelemetry collector or vendor]
+  B --> E[Traces]
+  C --> F[Export pipeline]
+  D --> F
+  E --> F
+  F --> G[Console, file, OTLP HTTP]
 ```
 
-## Project status
+Your code records telemetry through the SDK. Corelens keeps metrics in a local registry, creates spans through framework adapters or manual tracing, and sends logs, metrics, and traces through the configured export path.
+
+## Supported framework adapters
+
+Corelens currently ships explicit adapters for:
+
+- Express
+- Fastify
+- Hono
+
+Adapters are optional. Install the framework only when you use its adapter.
+
+## Stable status
 
 <span className="badge badge-stable">Stable</span>
 
-The public docs treat the SDK contract as stable for application integration. Compatibility notes and migration guidance should be documented before introducing breaking changes.
+The documented Corelens SDK contract is treated as stable for application integration. Breaking changes should include migration notes before release.
 
 ## Next steps
 
 <CardGroup cols={2}>
   <Card title="Quickstart" href="/corelens/quickstart" icon="rocket">
-    Instrument a minimal Node.js service and verify local telemetry output.
+    Install Corelens and record logs, metrics, and traces in a small service.
   </Card>
-  <Card title="Architecture" href="/corelens/architecture" icon="layers">
-    Understand the instrumentation path before using Corelens in production.
+  <Card title="Framework adapters" href="/corelens/framework-adapters/overview" icon="plug">
+    Add HTTP metrics and tracing to Express, Fastify, or Hono.
   </Card>
 </CardGroup>
 

@@ -1,0 +1,99 @@
+---
+title: "Traces configuration"
+description: "Reference every documented Corelens traces configuration option, accepted values, and operational effect."
+sidebarTitle: "Traces"
+---
+
+The `traces` block controls manual spans, HTTP tracing, and sampling.
+
+If you omit the `traces` block, tracing is disabled.
+
+```ts
+const lens = corelens({
+  serviceName: 'orders-api',
+  traces: {
+    enabled: true,
+    samplingRate: 0.1,
+    http: {
+      enabled: true,
+      ignoredRoutes: ['/health'],
+    },
+  },
+});
+```
+
+## Options
+
+| Option | Type | Accepted values | Default | What it controls |
+|--------|------|-----------------|---------|------------------|
+| `traces.enabled` | `boolean` | `true`, `false` | `false` | Turns tracing on or off. Required when `traces` is provided. |
+| `traces.samplingRate` | `number` | Number from `0` to `1` | `1` | Fraction of traces Corelens records. |
+| `traces.http.enabled` | `boolean` | `true`, `false` | `false` | Enables HTTP server spans through framework adapters. Required when `http` is provided. |
+| `traces.http.ignoredRoutes` | `string[]` | Route paths | `['/metrics', '/health']` | Routes excluded from HTTP tracing. |
+
+## `enabled`
+
+Set `traces.enabled` to `true` before using manual spans or HTTP tracing.
+
+```ts
+traces: {
+  enabled: true,
+}
+```
+
+## Sampling
+
+`samplingRate` must be between `0` and `1`.
+
+```ts
+traces: {
+  enabled: true,
+  samplingRate: 0.25,
+}
+```
+
+| Value | Meaning |
+|-------|---------|
+| `0` | Record no traces |
+| `0.25` | Record roughly a quarter of traces |
+| `1` | Record all traces |
+
+Use a higher rate during rollout. Lower it for high-traffic production services after metrics and spans are useful.
+
+## HTTP tracing
+
+HTTP tracing is recorded by framework adapters.
+
+```ts
+traces: {
+  enabled: true,
+  samplingRate: 0.25,
+  http: {
+    enabled: true,
+    ignoredRoutes: ['/health'],
+  },
+}
+```
+
+Ignore routes that do not help debugging. Health checks usually do not need spans.
+
+## Manual spans
+
+Manual spans use the same trace configuration.
+
+```ts
+await lens.tracer.withSpan('orders.reserveInventory', async (span) => {
+  span?.setAttribute('component', 'inventory');
+});
+```
+
+## Common mistakes
+
+- Setting `samplingRate` outside `0` and `1`.
+- Enabling `traces.http` without registering a framework tracing adapter.
+- Adding secrets or full payloads as span attributes.
+
+## Next steps
+
+- [Tracing concepts](/corelens/concepts/tracing)
+- [Framework adapters](/corelens/framework-adapters/overview)

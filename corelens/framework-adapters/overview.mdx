@@ -1,0 +1,50 @@
+---
+title: "Framework adapters"
+description: "Register Corelens HTTP metrics and tracing adapters for Express, Fastify, and Hono."
+sidebarTitle: "Overview"
+keywords:
+  - Corelens Express
+  - Corelens Fastify
+  - Corelens Hono
+  - Node.js HTTP metrics
+  - HTTP tracing
+---
+
+Framework adapters add HTTP metrics and server spans to supported Node.js frameworks.
+
+Adapters are explicit. Register them where you create the app so the instrumentation boundary is visible.
+
+## Supported adapters
+
+<CardGroup cols={3}>
+  <Card title="Express" href="/corelens/framework-adapters/express" icon="server">
+    Register HTTP metrics and tracing for an Express app.
+  </Card>
+  <Card title="Fastify" href="/corelens/framework-adapters/fastify" icon="zap">
+    Register HTTP metrics and tracing for a Fastify app.
+  </Card>
+  <Card title="Hono" href="/corelens/framework-adapters/hono" icon="route">
+    Register HTTP metrics and tracing for a Hono app.
+  </Card>
+</CardGroup>
+
+## Verification
+
+After registering an adapter:
+
+1. Send a request to a normal route.
+2. Check HTTP metrics through your Prometheus endpoint or export destination.
+3. Check traces for a server span.
+4. Confirm noisy routes such as `/health` and `/metrics` are ignored if configured.
+
+## Common mistakes
+
+- Registering adapters before creating the Corelens instance.
+- Enabling HTTP metrics in the adapter but not in `metrics.http`.
+- Enabling HTTP tracing in the adapter but not in `traces.http`.
+- Exposing `/debug/stats` publicly.
+
+## Next steps
+
+- [Prometheus metrics](/corelens/concepts/metrics)
+- [Troubleshooting](/corelens/troubleshooting)

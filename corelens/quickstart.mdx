@@ -1,103 +1,152 @@
 ---
 title: "Quickstart"
-description: "Get Corelens running in a Node.js service and verify telemetry output."
+description: "Install Corelens and record logs, metrics, and traces in a Node.js service."
 sidebarTitle: "Quickstart"
 keywords:
   - Corelens quickstart
-  - Node.js instrumentation
-  - Express observability
-  - OpenTelemetry quickstart
+  - Node.js observability
+  - structured logs
+  - metrics
+  - traces
 ---
 
-This quickstart adds Corelens to a small Express service and writes telemetry to the console. Use it to verify the instrumentation path before sending data to an external collector.
+This quickstart creates a Corelens instance, writes a structured log, records a metric, creates a span, and shuts down cleanly.
 
-## Prerequisites
+It uses local telemetry only. Export is disabled so you can understand the SDK before adding infrastructure.
 
-- Node.js 18 or newer
-- A Node.js service, or a new test directory
-
-<Snippet file="installation-note.mdx" />
-
-## 1. Create a test service
+## Install
 
 ```bash
-mkdir corelens-demo
-cd corelens-demo
-npm init -y
-npm install express @varsilias/corelens
+npm install @varsilias/corelens
 ```
 
-## 2. Add instrumentation
-
-Create `server.mjs`:
-
-```javascript
-import express from "express";
-import { createCorelens } from "@varsilias/corelens";
-
-const corelens = createCorelens({
-  serviceName: "corelens-demo",
-  environment: "local",
-  exporter: {
-    type: "console"
-  }
-});
-
-const app = express();
-
-app.use(corelens.httpMiddleware());
-
-app.get("/health", (req, res) => {
-  corelens.increment("healthcheck.requests");
-  res.json({ ok: true });
-});
-
-app.get("/checkout/:id", async (req, res) => {
-  await corelens.span("checkout.load", async span => {
-    span.setAttribute("checkout.id", req.params.id);
-  });
-
-  res.json({ id: req.params.id, status: "loaded" });
-});
-
-app.listen(3000, () => {
-  console.log("Listening on http://localhost:3000");
-});
-```
-
-## 3. Run the service
+Install a framework only when you use its adapter:
 
 ```bash
-node server.mjs
+npm install express
+npm install fastify
+npm install hono
 ```
 
-In another terminal, call the service:
+Express, Fastify, and Hono are optional peer dependencies. Corelens can run without a framework adapter.
 
-```bash
-curl http://localhost:3000/health
-curl http://localhost:3000/checkout/demo-123
+## Create a Corelens instance
+
+```ts
+import { corelens } from '@varsilias/corelens';
+
+const lens = corelens({
+  serviceName: 'checkout-api',
+  logs: {
+    enabled: true,
+    enrichWithTraceContext: true,
+  },
+  metrics: {
+    enabled: true,
+  },
+  traces: {
+    enabled: true,
+    samplingRate: 0.25,
+  },
+  export: {
+    enabled: false,
+  },
+});
 ```
 
-## 4. Verify output
+`serviceName` should be stable. It is how logs, metrics, traces, and exported records identify the service.
 
-The console exporter should print span and metric records for the HTTP requests. Check for these fields:
+## Write a structured log
 
-- `serviceName` is `corelens-demo`
-- `environment` is `local`
-- the request path appears on the HTTP span
-- `healthcheck.requests` increments after the health check
+```ts
+lens.logger.info('service started', { port: 3000 });
+```
 
-<Warning>
-  The package API shown here is the intended public SDK contract for the docs. Confirm the exact exported names against the package before publishing a stable release.
-</Warning>
+Logs are structured events. Keep values safe to store and search. Do not put secrets, tokens, or full payloads in log context.
 
-## What's next
+## Record a metric
+
+```ts
+const requestsTotal = lens.metrics.counter(
+  'checkout_requests_total',
+  'Total checkout requests',
+);
+
+requestsTotal.inc({ route: '/checkout', method: 'POST' });
+```
+
+Metrics are stored in a local registry. You can render that registry as Prometheus text or send it through the export pipeline.
+
+## Create a span
+
+```ts
+await lens.tracer.withSpan('checkout.create', async (span) => {
+  span?.setAttribute('checkout.flow', 'standard');
+});
+```
+
+Spans explain work that happens inside a request, job, or operation. Use them for meaningful application steps, not every function call.
+
+## Shut down cleanly
+
+```ts
+process.on('SIGTERM', async () => {
+  await lens.shutdown();
+  process.exit(0);
+});
+```
+
+Shutdown matters when export is enabled. It gives batched logs, metrics, and traces time to flush before the process exits.
+
+## Complete example
+
+```ts
+import { corelens } from '@varsilias/corelens';
+
+const lens = corelens({
+  serviceName: 'checkout-api',
+  logs: {
+    enabled: true,
+    enrichWithTraceContext: true,
+  },
+  metrics: {
+    enabled: true,
+  },
+  traces: {
+    enabled: true,
+    samplingRate: 0.25,
+  },
+  export: {
+    enabled: false,
+  },
+});
+
+lens.logger.info('service started', { port: 3000 });
+
+const requestsTotal = lens.metrics.counter(
+  'checkout_requests_total',
+  'Total checkout requests',
+);
+
+requestsTotal.inc({ route: '/checkout', method: 'POST' });
+
+await lens.tracer.withSpan('checkout.create', async (span) => {
+  span?.setAttribute('checkout.flow', 'standard');
+});
+
+process.on('SIGTERM', async () => {
+  await lens.shutdown();
+  process.exit(0);
+});
+```
+
+## What to read next
 
 <CardGroup cols={2}>
-  <Card title="Configuration" href="/corelens/configuration" icon="sliders-horizontal">
-    Configure service metadata, sampling, and exporters.
+  <Card title="Framework adapters" href="/corelens/framework-adapters/overview" icon="plug">
+    Add HTTP metrics and server spans to Express, Fastify, or Hono.
   </Card>
-  <Card title="Production" href="/corelens/production" icon="server">
-    Prepare Corelens for production traffic and collector delivery.
+  <Card title="Exporters" href="/corelens/concepts/exporters" icon="send">
+    Send telemetry to console, file, or OTLP HTTP destinations.
   </Card>
 </CardGroup>

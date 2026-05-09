@@ -75,20 +75,41 @@
               "corelens/overview",
               "corelens/quickstart",
               "corelens/installation",
-              "corelens/configuration",
-              "corelens/architecture",
-              {
-                "group": "Core concepts",
-                "expanded": false,
-                "pages": [
-                  "corelens/concepts/tracing",
-                  "corelens/concepts/metrics",
+                            {
+                                "group": "Configuration",
+                                "expanded": false,
+                                "pages": [
+                                    "corelens/configuration/overview",
+                                    "corelens/configuration/logs",
+                                    "corelens/configuration/metrics",
+                                    "corelens/configuration/traces",
+                                    "corelens/configuration/export"
+                                ]
+                            },
+                            "corelens/architecture",
+                            {
+                                "group": "Framework adapters",
+                                "expanded": false,
+                                "pages": [
+                                    "corelens/framework-adapters/overview",
+                                    "corelens/framework-adapters/express",
+                                    "corelens/framework-adapters/fastify",
+                                    "corelens/framework-adapters/hono"
+                                ]
+                            },
+                            {
+                                "group": "Core concepts",
+                                "expanded": false,
+                                "pages": [
+                                    "corelens/concepts/tracing",
+                                    "corelens/concepts/metrics",
                   "corelens/concepts/exporters"
                 ]
               },
-              "corelens/production",
-              "corelens/benchmarks",
-              "corelens/api-reference",
+                            "corelens/production",
+                            "corelens/benchmarks",
+                            "corelens/examples",
+                            "corelens/api-reference",
               "corelens/faq",
               "corelens/troubleshooting"
             ]
@@ -164,6 +185,10 @@
     }
   },
   "integrations": {
+    "cookies": {
+      "key": "varsilias_cookie_consent",
+      "value": "granted"
+    },
     "ga4": {
       "measurementId": "G-F279JJRGB3"
     }

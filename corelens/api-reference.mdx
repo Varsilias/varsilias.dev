@@ -1,62 +1,127 @@
 ---
 title: "API reference"
-description: "Reference the Corelens SDK entry points for instrumentation, spans, metrics, and exporters."
+description: "Reference Corelens imports, configuration entry points, logger, metrics, tracing, exporters, and lifecycle APIs."
 sidebarTitle: "API reference"
 ---
 
-This page tracks the intended Corelens SDK surface. Treat it as a living reference until the package reaches a stable release.
+This page is a compact reference for the public Corelens API shown throughout the docs.
 
-## `createCorelens(options)`
+## Imports
 
-Creates a Corelens instance for a service.
+```ts
+import { corelens, PrometheusTextExporter } from '@varsilias/corelens';
+import { ExpressMetricsAdapter } from '@varsilias/corelens/adapter';
+import type { CorelensConfig } from '@varsilias/corelens/core';
+```
 
-```javascript
-const corelens = createCorelens({
-  serviceName: "orders-api",
-  environment: "production",
-  sampleRate: 0.5,
-  exporter: {
-    type: "otlp",
-    endpoint: "http://otel-collector:4318"
-  }
+Published entry points:
+
+- `@varsilias/corelens`
+- `@varsilias/corelens/adapter`
+- `@varsilias/corelens/core`
+- `@varsilias/corelens/exporters`
+- `@varsilias/corelens/modules`
+
+## `corelens(config)`
+
+Creates a Corelens instance.
+
+```ts
+const lens = corelens({
+  serviceName: 'orders-api',
+  logs: { enabled: true },
+  metrics: { enabled: true },
+  traces: { enabled: true, samplingRate: 0.25 },
+  export: { enabled: false },
 });
 ```
 
-### Options
+## Logger
 
-<ParamField path="serviceName" type="string" required>
-  Stable service identifier used in telemetry records.
-</ParamField>
+```ts
+lens.logger.info('payment accepted', {
+  orderId: 'ord_123',
+  amount: 42_00,
+});
 
-<ParamField path="environment" type="string">
-  Runtime environment label.
-</ParamField>
+lens.logger.warn('inventory low', { sku: 'sku_123' });
+lens.logger.error('payment failed', { orderId: 'ord_123', reason: 'timeout' });
+```
 
-<ParamField path="sampleRate" type="number">
-  Fraction of traces to capture from `0` to `1`.
-</ParamField>
+## Metrics
 
-<ParamField path="exporter" type="object">
-  Exporter configuration.
-</ParamField>
+```ts
+const ordersTotal = lens.metrics.counter(
+  'orders_total',
+  'Total orders created',
+);
 
-## `corelens.httpMiddleware()`
+ordersTotal.inc({ status: 'created' });
+```
 
-Returns HTTP middleware for request instrumentation.
+```ts
+const orderValue = lens.metrics.histogram(
+  'order_value',
+  'Order value in major currency units',
+  { buckets: [10, 25, 50, 100, 250, 500] },
+);
 
-## `corelens.span(name, fn)`
+orderValue.observe(42, { currency: 'USD' });
+```
 
-Runs a function inside a named span.
+## Tracing
 
-## `corelens.increment(name, attributes)`
+```ts
+await lens.tracer.withSpan('orders.reserveInventory', async (span) => {
+  span?.setAttribute('component', 'inventory');
+  span?.addEvent('inventory.reserve.started');
+});
+```
 
-Increments a counter metric.
+```ts
+const response = await lens.tracer.withClientSpan(
+  {
+    name: 'GET catalog',
+    attributes: {
+      'http.method': 'GET',
+      'http.url': 'https://catalog.internal/recommendations',
+    },
+  },
+  async ({ traceparent, span }) => {
+    const response = await fetch('https://catalog.internal/recommendations', {
+      headers: { traceparent },
+    });
 
-## `corelens.timing(name, fn)`
+    span?.setAttribute('http.status_code', response.status);
+    return response;
+  },
+);
+```
 
-Measures the duration of an async operation.
+## Prometheus exporter
+
+```ts
+const prometheus = new PrometheusTextExporter();
+const body = prometheus.render(lens.metrics.snapshot());
+```
+
+## Stats
+
+```ts
+const stats = lens.getStats();
+```
+
+Use stats to inspect exporter failures, queue state, dropped items, shutdown result, and trace processor state.
+
+## Shutdown
+
+```ts
+const result = await lens.shutdown();
+```
+
+Call shutdown before process exit when export is enabled.
 
 ## Next steps
 
-- [Quickstart](/corelens/quickstart)
-- [Configuration](/corelens/configuration)
+- [Configuration](/corelens/configuration/overview)
+- [Troubleshooting](/corelens/troubleshooting)

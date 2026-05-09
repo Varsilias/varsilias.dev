@@ -22,8 +22,9 @@ Varsilias.dev includes:
 - `sitemap.xml`
 - `llms.txt`
 - `humans.txt`
-- Google Analytics 4 configuration placeholder
-- Google Search Console verification placeholder
+- Google Analytics 4
+- Google Search Console verification
+- cookie consent gating for analytics telemetry
 
 ## Fill in Google Analytics 4
 
@@ -38,6 +39,28 @@ Create a GA4 web stream for `https://www.varsilias.dev`, then replace the placeh
 ```
 
 Use your real Measurement ID. It starts with `G-`.
+
+## Cookie consent
+
+Analytics is gated behind consent. Mintlify checks this local storage value before enabling telemetry:
+
+```json
+"integrations": {
+  "cookies": {
+    "key": "varsilias_cookie_consent",
+    "value": "granted"
+  }
+}
+```
+
+The global `cookie-consent.js` file shows a small banner on first visit. It stores one of these values:
+
+| Value | Meaning |
+|-------|---------|
+| `granted` | Analytics may run |
+| `denied` | Analytics stays disabled |
+
+If someone changes their preference, the page reloads so Mintlify can re-check the consent value before loading telemetry.
 
 ## Fill in Google Search Console
 
@@ -72,6 +95,7 @@ Mintlify can generate a sitemap automatically, but this project also keeps a roo
 - Keep page descriptions specific.
 - Keep `llms.txt` updated for major documentation entry points.
 - Re-submit the sitemap after major namespace changes.
+- Keep consent copy accurate if analytics tools change.
 
 ## Next steps
 

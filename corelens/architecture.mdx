@@ -1,61 +1,76 @@
 ---
 title: "Architecture"
-description: "Understand how Corelens captures telemetry inside a Node.js service and exports it downstream."
+description: "Understand how Corelens collects logs, metrics, and traces and moves them through the export pipeline."
 sidebarTitle: "Architecture"
 keywords:
   - Corelens architecture
   - observability architecture
   - telemetry pipeline
-  - OpenTelemetry exporter
+  - Node.js telemetry
 ---
 
-Corelens is a small in-process instrumentation layer. It should make telemetry visible without hiding how signals are created or where they go.
+Corelens is built around explicit application instrumentation. You decide which signals are enabled, where framework adapters attach, and how telemetry leaves the process.
 
 ## Architecture overview
 
 ```mermaid
 flowchart TD
-  A[HTTP request or job] --> B[Instrumentation boundary]
-  B --> C[Span context]
-  B --> D[Metric recorder]
-  C --> E[Processor]
-  D --> E
-  E --> F[Exporter]
-  F --> G[Console, collector, or vendor]
+  A[Application code] --> B[Corelens SDK]
+  B --> C[Logger]
+  B --> D[Metric registry]
+  B --> E[Tracer]
+  F[Framework adapters] --> D
+  F --> E
+  C --> G[Export pipeline]
+  D --> G
+  E --> G
+  G --> H[Console]
+  G --> I[File]
+  G --> J[OTLP HTTP]
 ```
 
-## Components
+## Signals
 
-### Instrumentation boundary
+Corelens records three signal types:
 
-The boundary is the code you add to your service: middleware, explicit spans, counters, and attributes. It should stay readable because it explains what the service owner considers observable.
+| Signal | Use it for |
+|--------|------------|
+| Logs | Discrete events with context |
+| Metrics | Aggregate behavior over time |
+| Traces | The path of one request, job, or operation |
 
-### Span context
+These signals work best together. Logs explain what happened, metrics show how often or how long it happened, and traces show where time was spent.
 
-Span context keeps parent and child operations connected. HTTP middleware starts the request span, and explicit spans describe important work inside the request.
+## Adapters are explicit
 
-### Metric recorder
+Corelens does not globally patch your runtime. Framework adapters are registered where you set up the app.
 
-Metrics capture aggregate behavior such as counts, durations, and failures. Use metrics when the value should remain useful even without a sampled trace.
+That has a tradeoff:
 
-### Exporter
+- You write a little more setup code.
+- The instrumentation boundary is obvious in code review.
+- Framework dependencies stay optional.
 
-Exporters move records out of the process. The console exporter is for local verification. OTLP exporters are for collectors and production pipelines.
+## Export pipeline
 
-## Data flow
+The export pipeline sends logs, metrics, and traces to a destination.
 
-1. A request or job enters the service.
-2. Corelens creates a root span at the instrumentation boundary.
-3. Application code records child spans, attributes, counters, and timings.
-4. The processor normalizes telemetry and applies sampling.
-5. The exporter writes telemetry to the configured destination.
+Corelens supports:
 
-## Design decisions
+- console export
+- file export
+- OTLP HTTP export
 
-Corelens favors explicit instrumentation over broad implicit behavior. That keeps reviews useful and prevents telemetry from becoming a hidden side effect of dependency changes.
+For production OTLP export, use batch mode with bounded queues, retry, circuit breaker behavior, and graceful shutdown.
+
+## Back pressure and failures
+
+Telemetry should not take down the service it is observing. Corelens uses bounded queues and configurable overflow behavior so export failures do not grow memory without limit.
+
+When queues fill, Corelens follows the configured full queue policy. Watch `lens.getStats()` during rollout to understand dropped items and exporter failures.
 
 ## Next steps
 
-- [Tracing](/corelens/concepts/tracing)
-- [Metrics](/corelens/concepts/metrics)
+- [Framework adapters](/corelens/framework-adapters/overview)
 - [Exporters](/corelens/concepts/exporters)
+- [Production](/corelens/production)

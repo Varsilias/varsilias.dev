@@ -1,0 +1,151 @@
+---
+title: "Logs configuration"
+description: "Reference every documented Corelens logs configuration option, accepted values, and operational effect."
+sidebarTitle: "Logs"
+---
+
+The `logs` block controls structured logging and log queue behavior.
+
+If you omit the `logs` block, Corelens enables logging with the defaults below.
+
+```ts
+const lens = corelens({
+  serviceName: 'orders-api',
+  logs: {
+    enabled: true,
+    level: 'info',
+    format: 'json',
+    timestamp: { format: 'iso' },
+    colorize: false,
+    reportStatsOnShutdown: false,
+    maxQueueBytes: 1024 * 1024,
+    fullQueuePolicy: 'drop-oldest',
+    writer: {
+      highWaterMark: 64 * 1024,
+    },
+    enrichWithTraceContext: true,
+  },
+});
+```
+
+## Options
+
+| Option | Type | Accepted values | Default | What it controls |
+|--------|------|-----------------|---------|------------------|
+| `logs.enabled` | `boolean` | `true`, `false` | `true` | Turns Corelens logging on or off. Required when `logs` is provided. |
+| `logs.level` | `string` | `debug`, `info`, `warn`, `error` | `info` | Minimum log level emitted by `lens.logger`. |
+| `logs.format` | `string` | `json`, `pretty` | `json` | Log output format. |
+| `logs.timestamp.format` | `string` | `epoch`, `iso` | `iso` | Timestamp format attached to log records. |
+| `logs.colorize` | `boolean` | `true`, `false` | `false` | Adds terminal color output when pretty formatting is used. |
+| `logs.maxQueueBytes` | `number` | Integer from `65536` to `536870912` | `1048576` | Maximum memory budget for queued log records, in bytes. |
+| `logs.fullQueuePolicy` | `string` | `drop-newest`, `drop-oldest` | `drop-newest` | What Corelens does when the log queue is full. |
+| `logs.writer.highWaterMark` | `number` | Integer from `16384` to `16777216` | `65536` | Stream backpressure threshold for the log writer, in bytes. |
+| `logs.reportStatsOnShutdown` | `boolean` | `true`, `false` | `false` | Prints Corelens log pipeline stats during shutdown. |
+| `logs.enrichWithTraceContext` | `boolean` | `true`, `false` | `false` | Adds trace context to logs written inside an active span. |
+
+## `enabled`
+
+Set `logs.enabled` to `true` when the service should use `lens.logger`.
+
+```ts
+logs: {
+  enabled: true,
+}
+```
+
+If logging is disabled, do not rely on log export or trace-enriched log output.
+
+## `level`
+
+Use `level` to control verbosity.
+
+```ts
+logs: {
+  enabled: true,
+  level: 'info',
+}
+```
+
+Use `debug` temporarily during local development or incident investigation. Use `info` or higher for normal production operation.
+
+## `format`
+
+Use JSON for production logs.
+
+```ts
+logs: {
+  enabled: true,
+  format: 'json',
+}
+```
+
+JSON logs are easier for collectors, log shippers, and query tools to parse.
+
+Use `pretty` for local debugging when humans are reading the output directly.
+
+```ts
+logs: {
+  enabled: true,
+  format: 'pretty',
+  colorize: true,
+}
+```
+
+## `timestamp`
+
+Use ISO timestamps when logs need to be read by humans and machines.
+
+```ts
+logs: {
+  enabled: true,
+  timestamp: { format: 'iso' },
+}
+```
+
+Use `epoch` when downstream tooling expects numeric timestamps.
+
+## Queue limits
+
+`maxQueueBytes`, `writer.highWaterMark`, and `fullQueuePolicy` protect the process when logs are produced faster than they can be written or exported.
+
+```ts
+logs: {
+  enabled: true,
+  maxQueueBytes: 1024 * 1024,
+  writer: {
+    highWaterMark: 64 * 1024,
+  },
+  fullQueuePolicy: 'drop-oldest',
+}
+```
+
+Choose the overflow policy intentionally:
+
+| Policy | Behavior | Use when |
+|--------|----------|----------|
+| `drop-oldest` | Removes older queued logs first | Recent logs matter more during incidents |
+| `drop-newest` | Rejects new logs when full | You want to preserve the earliest records in a burst |
+
+## Trace correlation
+
+`enrichWithTraceContext` connects logs to active spans.
+
+```ts
+logs: {
+  enabled: true,
+  enrichWithTraceContext: true,
+}
+```
+
+Use this when logs and traces are inspected together.
+
+## Common mistakes
+
+- Logging secrets, tokens, or full request payloads.
+- Using high-volume debug logs in production.
+- Leaving queue behavior unspecified during high-throughput export.
+
+## Next steps
+
+- [Traces configuration](/corelens/configuration/traces)
+- [Export configuration](/corelens/configuration/export)

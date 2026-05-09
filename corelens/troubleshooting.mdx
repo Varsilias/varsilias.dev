@@ -1,39 +1,110 @@
 ---
 title: "Troubleshooting"
-description: "Diagnose common Corelens setup, instrumentation, and exporter issues."
+description: "Debug Corelens setup, dropped telemetry, exporter failures, route noise, and shutdown issues."
 sidebarTitle: "Troubleshooting"
 ---
 
-Use symptoms first. Then check configuration, instrumentation placement, and exporter delivery.
+Start with the symptom. Then check signal configuration, adapter registration, exporter state, and queue behavior.
 
-## No telemetry appears
+## No logs, metrics, or traces appear
 
 Check these items:
 
-1. Confirm `createCorelens()` runs before request handling starts.
-2. Confirm middleware is registered before route handlers.
-3. Use the console exporter to remove collector delivery from the problem.
-4. Confirm sampling is not set to `0`.
+1. Confirm the relevant signal is enabled.
+2. Confirm `export.enabled` is explicit when using exporters.
+3. Confirm signal overrides under `export.signals` also have `enabled: true`.
+4. If using a framework, confirm the adapter is registered.
+5. Check `lens.getStats()` for exporter failures or dropped items.
 
-## Spans are missing request context
+## HTTP metrics or traces are missing
 
-The explicit span may be running outside the request context. Keep async work inside the request path or pass context explicitly when work moves to a queue.
+Framework adapters are manual. Make sure both the signal and the adapter are enabled.
 
-## Metrics have too many labels
+```ts
+metrics: { enabled: true, http: { enabled: true } },
+traces: { enabled: true, samplingRate: 1, http: { enabled: true } },
+```
 
-High-cardinality labels can make dashboards noisy and expensive. Remove IDs, emails, tokens, and unbounded user input from metric labels.
+Then register the matching metrics and tracing adapters for Express, Fastify, or Hono.
+
+## Too much route noise
+
+Ignore noisy routes:
+
+```ts
+metrics: {
+  enabled: true,
+  http: {
+    enabled: true,
+    ignoredRoutes: ['/metrics', '/health'],
+  },
+},
+traces: {
+  enabled: true,
+  samplingRate: 0.25,
+  http: {
+    enabled: true,
+    ignoredRoutes: ['/health'],
+  },
+},
+```
+
+Health checks and scrape endpoints can dominate telemetry if they are not filtered.
 
 ## OTLP export fails
 
-Check the collector endpoint and network path from the service container.
+Check the collector base URL and network path.
 
 ```bash
-curl -v http://otel-collector:4318
+curl -v http://localhost:4318
 ```
+
+Remember that Corelens resolves signal endpoints from the base URL:
+
+- `/v1/logs`
+- `/v1/metrics`
+- `/v1/traces`
 
 If the collector is unavailable, Corelens should not fail customer requests. Fix exporter delivery separately from request handling.
 
+## Telemetry is being dropped
+
+Check queue settings and `lens.getStats()`.
+
+Common causes:
+
+- queue is too small for traffic volume
+- exporter is slow or failing
+- `fullQueuePolicy` is dropping new or old items
+- shutdown timeout is too short
+
+Increase queue limits carefully. A larger queue can absorb more pressure, but it also uses more memory.
+
+## Trace context is missing from logs
+
+Enable log enrichment:
+
+```ts
+logs: {
+  enabled: true,
+  enrichWithTraceContext: true,
+}
+```
+
+Also confirm the log is written inside an active span.
+
+## Process hangs during shutdown
+
+Check `shutdownTimeoutMs` and make sure shutdown is owned by one path.
+
+Use either:
+
+- your own `SIGINT` and `SIGTERM` handlers that call `lens.shutdown()`
+- `lifecycle.handleProcessSignals: true`
+
+Do not use both in the same app.
+
 ## Next steps
 
-- [Configuration](/corelens/configuration)
+- [Configuration](/corelens/configuration/overview)
 - [Production](/corelens/production)

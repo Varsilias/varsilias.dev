@@ -1,41 +1,102 @@
 ---
 title: "Metrics"
-description: "Use Corelens metrics to track aggregate service behavior over time."
+description: "Use Corelens counters, gauges, histograms, HTTP metrics, runtime metrics, and Prometheus rendering."
+sidebarTitle: "Metrics"
 ---
 
-Metrics answer aggregate questions: how often something happens, how long it takes, and whether the rate is changing.
+Metrics show aggregate behavior over time. They are the fastest way to answer questions like “is traffic rising?”, “is latency getting worse?”, and “is this process healthy?”.
+
+Corelens records metrics in a local registry. You can render that registry as Prometheus text or export metrics through the configured export pipeline.
 
 ## Counters
 
-Use counters for events that increase over time.
+Use counters for values that only increase.
 
-```javascript
-corelens.increment("checkout.completed", {
-  paymentMethod: "card"
+```ts
+const ordersTotal = lens.metrics.counter(
+  'orders_total',
+  'Total orders created',
+);
+
+ordersTotal.inc({ status: 'created' });
+```
+
+## Histograms
+
+Use histograms for values where distribution matters, such as latency or order value.
+
+```ts
+const orderValue = lens.metrics.histogram(
+  'order_value',
+  'Order value in major currency units',
+  { buckets: [10, 25, 50, 100, 250, 500] },
+);
+
+orderValue.observe(42, { currency: 'USD' });
+```
+
+## HTTP metrics
+
+HTTP metrics are recorded through framework adapters. Ignore routes that add noise or create scrape loops.
+
+```ts
+metrics: {
+  enabled: true,
+  http: {
+    enabled: true,
+    ignoredRoutes: ['/metrics', '/health'],
+    buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1],
+  },
+}
+```
+
+## Runtime metrics
+
+Runtime metrics help you detect memory growth, event loop pressure, and process-level health.
+
+```ts
+metrics: {
+  enabled: true,
+  runtime: {
+    enabled: true,
+    intervalMs: 5000,
+  },
+}
+```
+
+Runtime collection uses an interval. Call `lens.shutdown()` during process shutdown so lifecycle cleanup is predictable.
+
+## Prometheus text export
+
+Corelens can render the current metric snapshot as Prometheus text.
+
+```ts
+import { PrometheusTextExporter } from '@varsilias/corelens';
+
+const prometheus = new PrometheusTextExporter();
+
+app.get('/metrics', (_req, res) => {
+  res.type('text/plain');
+  res.send(prometheus.render(lens.metrics.snapshot()));
 });
 ```
 
-## Timings
+For Fastify or Hono, return the rendered text with `content-type: text/plain`.
 
-Use timings for operations where latency matters.
+## Cardinality protection
 
-```javascript
-await corelens.timing("report.generate.duration", async () => {
-  await generateReport();
-});
+Use `maxSeriesPerMetric` to protect the process from unbounded metric series.
+
+```ts
+metrics: {
+  enabled: true,
+  maxSeriesPerMetric: 1000,
+}
 ```
 
-## Metric names
-
-Use stable names. Changing a metric name creates a new time series and breaks dashboards.
-
-| Pattern | Example |
-|---------|---------|
-| `<domain>.<event>` | `checkout.completed` |
-| `<domain>.<operation>.duration` | `report.generate.duration` |
-| `<domain>.<failure>` | `sync.failed` |
+Avoid putting user IDs, emails, order IDs, or unbounded strings in metric labels.
 
 ## Next steps
 
-- [Configuration](/corelens/configuration)
+- [Framework adapters](/corelens/framework-adapters/overview)
 - [Production](/corelens/production)

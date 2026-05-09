@@ -1,0 +1,242 @@
+---
+title: "Configuration overview"
+description: "Configure Corelens signals, exporters, queues, retries, sampling, and shutdown behavior."
+sidebarTitle: "Overview"
+---
+
+Corelens configuration starts with the signals you want to collect, then adds export behavior when you are ready to send telemetry somewhere.
+
+Keep configuration close to service startup. It should be easy to review because it defines what the service emits and how failures are handled.
+
+## Root options
+
+Every Corelens instance needs a stable `serviceName`. The other top-level blocks opt into signals, export behavior, lifecycle ownership, and diagnostics.
+
+| Option | Type | Accepted values | Default | What it controls |
+|--------|------|-----------------|---------|------------------|
+| `serviceName` | `string` | Non-empty string | Required | Service identity attached to telemetry. |
+| `logs` | `CorelensLogConfig` | Logs configuration object | Enabled with defaults when omitted | Structured logging behavior. |
+| `metrics` | `CorelensMetricsConfig` | Metrics configuration object | Disabled when omitted | Application, HTTP, and runtime metrics. |
+| `traces` | `CorelensTracesConfig` | Traces configuration object | Disabled when omitted | Manual spans, HTTP spans, and sampling. |
+| `export` | `CorelensExportConfig` | Export configuration object | Disabled when omitted | Console, file, or OTLP HTTP export. |
+| `lifecycle.handleProcessSignals` | `boolean` | `true`, `false` | `false` | Lets Corelens register process signal handlers. |
+| `diagnostics.warnOnExportFailure` | `boolean` | `true`, `false` | `true` | Emits warnings when export fails. |
+| `diagnostics.warnOnConfigFallback` | `boolean` | `true`, `false` | `false` | Emits warnings when Corelens falls back to defaults. |
+
+## Basic logging
+
+Use this when you only need structured logs from a service or worker.
+
+```ts
+const lens = corelens({
+  serviceName: 'worker',
+  logs: {
+    enabled: true,
+    level: 'info',
+    format: 'json',
+  },
+  export: {
+    enabled: false,
+  },
+});
+```
+
+## Logs and metrics
+
+Use this when you want structured logs, runtime metrics, and HTTP metrics.
+
+```ts
+const lens = corelens({
+  serviceName: 'api',
+  logs: {
+    enabled: true,
+    enrichWithTraceContext: true,
+  },
+  metrics: {
+    enabled: true,
+    runtime: { enabled: true, intervalMs: 5000 },
+    http: { enabled: true, ignoredRoutes: ['/metrics', '/health'] },
+  },
+});
+```
+
+## Logs, metrics, and traces
+
+Use this for a service where you want request-level visibility and selected application spans.
+
+```ts
+const lens = corelens({
+  serviceName: 'api',
+  logs: { enabled: true, enrichWithTraceContext: true },
+  metrics: { enabled: true, http: { enabled: true } },
+  traces: {
+    enabled: true,
+    samplingRate: 0.25,
+    http: { enabled: true },
+  },
+});
+```
+
+## Logs
+
+```ts
+const lens = corelens({
+  serviceName: 'orders-api',
+  logs: {
+    enabled: true,
+    level: 'info',
+    format: 'json',
+    timestamp: { format: 'iso' },
+    maxQueueBytes: 1024 * 1024,
+    fullQueuePolicy: 'drop-oldest',
+    enrichWithTraceContext: true,
+  },
+});
+```
+
+`enrichWithTraceContext` adds trace information to logs when a span is active. This is useful when debugging a request across logs and traces.
+
+## Metrics
+
+```ts
+const lens = corelens({
+  serviceName: 'orders-api',
+  metrics: {
+    enabled: true,
+    runtime: {
+      enabled: true,
+      intervalMs: 5000,
+    },
+    http: {
+      enabled: true,
+      ignoredRoutes: ['/metrics', '/health'],
+      buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1],
+    },
+    maxSeriesPerMetric: 1000,
+  },
+});
+```
+
+Use `maxSeriesPerMetric` to protect the process from unbounded label cardinality.
+
+## Traces
+
+```ts
+const lens = corelens({
+  serviceName: 'orders-api',
+  traces: {
+    enabled: true,
+    samplingRate: 0.1,
+    http: {
+      enabled: true,
+      ignoredRoutes: ['/health'],
+    },
+  },
+});
+```
+
+`samplingRate` must be between `0` and `1`.
+
+## Export block
+
+The top-level `export` block is optional. If you provide it, `enabled` must be explicit.
+
+```ts
+export: {
+  enabled: true,
+  mode: 'batch',
+  destination: {
+    type: 'otlp-http',
+    endpoint: 'http://localhost:4318',
+  },
+  signals: {
+    logs: { enabled: true },
+    metrics: { enabled: true },
+    traces: { enabled: true },
+  },
+}
+```
+
+Signal overrides under `export.signals` also require their own `enabled` flag.
+
+## Per-signal export destinations
+
+Use per-signal configuration when logs, metrics, and traces need different destinations or batch settings.
+
+```ts
+const lens = corelens({
+  serviceName: 'orders-api',
+  logs: { enabled: true },
+  metrics: { enabled: true },
+  traces: { enabled: true, samplingRate: 1 },
+  export: {
+    enabled: true,
+    mode: 'batch',
+    destination: {
+      type: 'otlp-http',
+      endpoint: 'http://localhost:4318',
+    },
+    signals: {
+      logs: {
+        enabled: true,
+        destination: {
+          type: 'file',
+          filePath: './logs.jsonl',
+        },
+      },
+      metrics: {
+        enabled: true,
+        batch: {
+          scheduledDelayMs: 15000,
+        },
+      },
+      traces: {
+        enabled: true,
+        destination: {
+          type: 'otlp-http',
+          endpoint: 'http://localhost:4318',
+          headers: {
+            'x-signal': 'traces',
+          },
+        },
+      },
+    },
+  },
+});
+```
+
+## Lifecycle
+
+Corelens can register process signal handlers:
+
+```ts
+lifecycle: {
+  handleProcessSignals: true,
+}
+```
+
+Use this or your own shutdown handler, not both. Shutdown ownership should stay clear.
+
+## Diagnostics
+
+Diagnostics are for Corelens itself, not your application telemetry.
+
+```ts
+const lens = corelens({
+  serviceName: 'orders-api',
+  diagnostics: {
+    warnOnExportFailure: true,
+    warnOnConfigFallback: false,
+  },
+});
+```
+
+Leave `warnOnExportFailure` enabled during rollout so exporter problems are visible. Enable `warnOnConfigFallback` when you are validating configuration changes and want Corelens to warn when it applies defaults.
+
+## Next steps
+
+- [Logs configuration](/corelens/configuration/logs)
+- [Metrics configuration](/corelens/configuration/metrics)
+- [Traces configuration](/corelens/configuration/traces)
+- [Export configuration](/corelens/configuration/export)
+- [Production](/corelens/production)

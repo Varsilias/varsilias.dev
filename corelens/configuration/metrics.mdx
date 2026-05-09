@@ -1,0 +1,117 @@
+---
+title: "Metrics configuration"
+description: "Reference every documented Corelens metrics configuration option, accepted values, and operational effect."
+sidebarTitle: "Metrics"
+---
+
+The `metrics` block controls application metrics, HTTP metrics, runtime metrics, and metric series protection.
+
+If you omit the `metrics` block, metric recording is disabled.
+
+```ts
+const lens = corelens({
+  serviceName: 'orders-api',
+  metrics: {
+    enabled: true,
+    runtime: {
+      enabled: true,
+      intervalMs: 5000,
+    },
+    http: {
+      enabled: true,
+      ignoredRoutes: ['/metrics', '/health'],
+      buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1],
+    },
+    maxSeriesPerMetric: 1000,
+  },
+});
+```
+
+## Options
+
+| Option | Type | Accepted values | Default | What it controls |
+|--------|------|-----------------|---------|------------------|
+| `metrics.enabled` | `boolean` | `true`, `false` | `false` | Turns metric recording on or off. Required when `metrics` is provided. |
+| `metrics.runtime.enabled` | `boolean` | `true`, `false` | `false` | Enables Node.js runtime metric collection. Required when `runtime` is provided. |
+| `metrics.runtime.intervalMs` | `number` | Integer from `1000` to `300000` | `15000` | Collection interval for runtime metrics, in milliseconds. |
+| `metrics.http.enabled` | `boolean` | `true`, `false` | `false` | Enables HTTP request metrics through framework adapters. Required when `http` is provided. |
+| `metrics.http.ignoredRoutes` | `string[]` | Route paths | `['/metrics', '/health']` | Routes excluded from HTTP metrics. |
+| `metrics.http.buckets` | `number[]` | Non-empty, positive, finite, strictly increasing numbers | Corelens HTTP bucket defaults | Histogram buckets for HTTP request duration. |
+| `metrics.maxSeriesPerMetric` | `number` | Integer from `1` to `1000000` | `1000` | Maximum label series allowed per metric. |
+
+## `enabled`
+
+Set `metrics.enabled` to `true` before creating counters, gauges, histograms, HTTP metrics, or runtime metrics.
+
+```ts
+metrics: {
+  enabled: true,
+}
+```
+
+## Runtime metrics
+
+Runtime metrics help you detect memory growth, event loop pressure, and process-level health.
+
+```ts
+metrics: {
+  enabled: true,
+  runtime: {
+    enabled: true,
+    intervalMs: 5000,
+  },
+}
+```
+
+Use a higher interval if runtime metrics are too noisy. Runtime collection uses an interval, so call `lens.shutdown()` during process shutdown.
+
+## HTTP metrics
+
+HTTP metrics are recorded by framework adapters.
+
+```ts
+metrics: {
+  enabled: true,
+  http: {
+    enabled: true,
+    ignoredRoutes: ['/metrics', '/health'],
+    buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1],
+  },
+}
+```
+
+Ignore routes that add noise or create loops. `/metrics` and `/health` are common exclusions.
+
+## Histogram buckets
+
+`metrics.http.buckets` controls HTTP latency buckets.
+
+```ts
+buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1]
+```
+
+Choose buckets that match the latency range your service actually cares about. Buckets must be sorted from lowest to highest.
+
+## Series limits
+
+`maxSeriesPerMetric` protects the process from unbounded label cardinality.
+
+```ts
+metrics: {
+  enabled: true,
+  maxSeriesPerMetric: 1000,
+}
+```
+
+Avoid labels with user IDs, emails, order IDs, request IDs, or raw paths with unbounded parameters.
+
+## Common mistakes
+
+- Enabling `metrics.http` without registering a framework metrics adapter.
+- Using labels with unbounded cardinality.
+- Forgetting to ignore `/metrics` and `/health`.
+
+## Next steps
+
+- [Metrics concepts](/corelens/concepts/metrics)
+- [Framework adapters](/corelens/framework-adapters/overview)

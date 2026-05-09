@@ -523,3 +523,91 @@ body:has([data-varsilias-home]) #sidebar a.nav-anchor[href='/varsilias-dev/overv
     grid-template-columns: 1fr;
   }
 }
+
+.varsilias-cookie-banner,
+.varsilias-cookie-preferences {
+  position: fixed;
+  z-index: 2147483000;
+  border: 1px solid var(--varsilias-line);
+  background: var(--varsilias-surface);
+  color: var(--varsilias-ink);
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.16);
+}
+
+.varsilias-cookie-banner {
+  right: 1rem;
+  bottom: 1rem;
+  width: min(31rem, calc(100vw - 2rem));
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.varsilias-cookie-banner[hidden],
+.varsilias-cookie-preferences[hidden] {
+  display: none !important;
+}
+
+.varsilias-cookie-title {
+  margin: 0;
+  color: var(--varsilias-ink);
+  font-size: 0.95rem;
+  font-weight: 680;
+  letter-spacing: 0;
+}
+
+.varsilias-cookie-copy {
+  margin: 0.5rem 0 0;
+  color: var(--varsilias-muted);
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
+
+.varsilias-cookie-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  margin-top: 0.9rem;
+}
+
+.varsilias-cookie-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.25rem;
+  border-radius: 6px;
+  padding: 0 0.82rem;
+  font-size: 0.82rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.varsilias-cookie-accept {
+  border: 1px solid transparent;
+  background: var(--varsilias-gradient);
+  color: #ffffff;
+}
+
+.varsilias-cookie-reject,
+.varsilias-cookie-manage {
+  border: 1px solid var(--varsilias-line);
+  background: transparent;
+  color: var(--varsilias-ink);
+}
+
+.varsilias-cookie-preferences {
+  left: 1rem;
+  bottom: 1rem;
+  border-radius: 999px;
+  padding: 0.25rem;
+}
+
+.varsilias-cookie-preferences button {
+  border: 0;
+  background: transparent;
+  color: var(--varsilias-muted);
+  font-size: 0.76rem;
+  font-weight: 650;
+  cursor: pointer;
+  padding: 0.4rem 0.65rem;
+}

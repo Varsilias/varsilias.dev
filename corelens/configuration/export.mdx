@@ -1,0 +1,198 @@
+---
+title: "Export configuration"
+description: "Reference every documented Corelens export configuration option, accepted values, and operational effect."
+sidebarTitle: "Export"
+---
+
+The `export` block controls how Corelens sends telemetry out of the process.
+
+The block is optional. If you omit it, export is disabled. If you provide it, `enabled` must be explicit.
+
+Export is enabled per signal. The top-level `export` block defines shared destination and policy defaults. Enable `export.signals.logs`, `export.signals.metrics`, or `export.signals.traces` for the telemetry you want to send.
+
+## Options
+
+| Option | Type | Accepted values | Default | What it controls |
+|--------|------|-----------------|---------|------------------|
+| `export.enabled` | `boolean` | `true`, `false` | `false` | Turns export on or off. Required when `export` is provided. |
+| `export.mode` | `string` | `simple`, `batch` | `batch` | Whether telemetry is exported immediately or in batches. |
+| `export.destination` | `ExportDestination` | Console, file, or OTLP HTTP destination | Required when export is enabled | Default destination for exported telemetry. |
+| `export.destination.type` | `string` | `console`, `file`, `otlp-http` | None | Selects the destination kind. |
+| `export.destination.pretty` | `boolean` | `true`, `false` | `false` | Pretty console output. Console destination only. |
+| `export.destination.filePath` | `string` | Non-empty file path | None | File destination path. File destination only. |
+| `export.destination.endpoint` | `string` | Base URL | None | OTLP HTTP collector or backend base URL. |
+| `export.destination.headers` | `Record<string, string>` | Object with string values | `{}` | Headers sent with OTLP HTTP requests. |
+| `export.destination.timeoutMs` | `number` | Integer from `100` to `60000` | `3000` | OTLP HTTP request timeout in milliseconds. |
+| `export.retry.enabled` | `boolean` | `true`, `false` | `true` | Enables retry for export failures. |
+| `export.retry.maxRetries` | `number` | Integer from `0` to `10` | `3` | Maximum retry attempts. |
+| `export.retry.initialDelayMs` | `number` | Integer from `1` to `60000` | `100` | Initial retry delay in milliseconds. |
+| `export.retry.maxDelayMs` | `number` | Integer from `initialDelayMs` to `300000` | `2000` | Maximum retry delay in milliseconds. |
+| `export.circuitBreaker.enabled` | `boolean` | `true`, `false` | `true` | Enables circuit breaker behavior. |
+| `export.circuitBreaker.failureThreshold` | `number` | Integer from `1` to `100` | `5` | Failures before the circuit opens. |
+| `export.circuitBreaker.resetTimeoutMs` | `number` | Integer from `100` to `300000` | `30000` | Time before retrying after the circuit opens. |
+| `export.batch.maxQueueSize` | `number` | Integer from `1` to `1000000` | `2048` | Maximum queued telemetry items. |
+| `export.batch.maxExportBatchSize` | `number` | Integer from `1` to `maxQueueSize` | `512` | Maximum records sent per export call. |
+| `export.batch.scheduledDelayMs` | `number` | Integer from `100` to `60000` | `5000` | Delay between scheduled export attempts. |
+| `export.batch.shutdownTimeoutMs` | `number` | Integer from `100` to `30000` | `5000` | Time allowed for final flush on shutdown. |
+| `export.batch.fullQueuePolicy` | `string` | `drop-newest`, `drop-oldest` | `drop-newest` | What happens when the batch queue is full. |
+| `export.signals.logs.enabled` | `boolean` | `true`, `false` | `false` | Enables log-specific export. Required when the logs override exists. |
+| `export.signals.metrics.enabled` | `boolean` | `true`, `false` | `false` | Enables metric-specific export. Required when the metrics override exists. |
+| `export.signals.traces.enabled` | `boolean` | `true`, `false` | `false` | Enables trace-specific export. Required when the traces override exists. |
+| `export.signals.<signal>.mode` | `string` | `simple`, `batch` | Inherits `export.mode` | Overrides export mode for one signal. |
+| `export.signals.<signal>.destination` | `Partial<ExportDestination>` | Console, file, or OTLP HTTP destination fields | Inherits `export.destination` | Overrides destination for one signal. |
+| `export.signals.<signal>.batch` | `Partial<ExportBatchConfig>` | Same values as `export.batch` | Inherits `export.batch` | Overrides batch behavior for one signal. |
+| `export.signals.<signal>.retry` | `Partial<ExportRetryConfig>` | Same values as `export.retry` | Inherits `export.retry` | Overrides retry behavior for one signal. |
+| `export.signals.<signal>.circuitBreaker` | `Partial<ExportCircuitBreakerConfig>` | Same values as `export.circuitBreaker` | Inherits `export.circuitBreaker` | Overrides circuit breaker behavior for one signal. |
+
+## Console destination
+
+```ts
+export: {
+  enabled: true,
+  mode: 'simple',
+  destination: {
+    type: 'console',
+    pretty: false,
+  },
+  signals: {
+    metrics: { enabled: true },
+    traces: { enabled: true },
+  },
+}
+```
+
+Use console export for local debugging and smoke tests. Logs already write to stdout through the primary log pipeline, so console export is most useful for metrics and traces.
+
+## File destination
+
+```ts
+export: {
+  enabled: true,
+  mode: 'batch',
+  destination: {
+    type: 'file',
+    filePath: './observability.jsonl',
+  },
+  signals: {
+    logs: { enabled: true },
+    metrics: { enabled: true },
+    traces: { enabled: true },
+  },
+}
+```
+
+Use file export for diagnostics or when another process ships files.
+
+## OTLP HTTP destination
+
+```ts
+export: {
+  enabled: true,
+  mode: 'batch',
+  destination: {
+    type: 'otlp-http',
+    endpoint: 'http://localhost:4318',
+    headers: {
+      authorization: `Bearer ${process.env.OTLP_TOKEN}`,
+    },
+    timeoutMs: 5000,
+  },
+  signals: {
+    logs: { enabled: true },
+    metrics: { enabled: true },
+    traces: { enabled: true },
+  },
+}
+```
+
+Use the collector base URL. Corelens resolves signal endpoints to `/v1/logs`, `/v1/metrics`, and `/v1/traces`.
+
+<Warning>
+Do not set the top-level OTLP endpoint to `/v1/logs`, `/v1/metrics`, or `/v1/traces`. Corelens expects a base URL at `export.destination.endpoint`.
+</Warning>
+
+## Retry
+
+```ts
+retry: {
+  enabled: true,
+  maxRetries: 3,
+  initialDelayMs: 100,
+  maxDelayMs: 2000,
+}
+```
+
+Retries should be bounded so telemetry delivery does not dominate service work.
+
+## Circuit breaker
+
+```ts
+circuitBreaker: {
+  enabled: true,
+  failureThreshold: 5,
+  resetTimeoutMs: 30000,
+}
+```
+
+Use a circuit breaker for network exporters. It prevents repeated calls to a destination that is already failing.
+
+## Batch
+
+```ts
+batch: {
+  maxQueueSize: 2048,
+  maxExportBatchSize: 512,
+  scheduledDelayMs: 2000,
+  shutdownTimeoutMs: 5000,
+  fullQueuePolicy: 'drop-newest',
+}
+```
+
+Use batch mode for OTLP export in production.
+
+## Per-signal overrides
+
+Signal overrides let logs, metrics, and traces use different destinations or policy settings.
+
+```ts
+signals: {
+  logs: {
+    enabled: true,
+    destination: {
+      type: 'file',
+      filePath: './logs.jsonl',
+    },
+  },
+  metrics: {
+    enabled: true,
+    batch: {
+      scheduledDelayMs: 15000,
+    },
+  },
+  traces: {
+    enabled: true,
+    destination: {
+      type: 'otlp-http',
+      endpoint: 'http://localhost:4318',
+      headers: {
+        'x-signal': 'traces',
+      },
+    },
+  },
+}
+```
+
+Signal overrides require their own `enabled` flag.
+
+## Common mistakes
+
+- Adding `export` without `export.enabled`.
+- Adding signal overrides without `enabled`.
+- Pointing OTLP at `/v1/traces` instead of the collector base URL.
+- Using unbounded queues in production.
+- Setting a shutdown timeout too low to flush final batches.
+
+## Next steps
+
+- [Exporters](/corelens/concepts/exporters)
+- [Production](/corelens/production)

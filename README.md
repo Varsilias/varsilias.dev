@@ -56,6 +56,7 @@ mint validate
 ## Analytics and SEO
 
 Google Analytics 4 and Google Search Console placeholders live in `docs.json`.
+Analytics is gated by `cookie-consent.js`, which writes `varsilias_cookie_consent=granted` before Mintlify telemetry is enabled.
 
 Replace these before production use:
 

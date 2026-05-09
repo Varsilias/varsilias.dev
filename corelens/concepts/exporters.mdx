@@ -1,44 +1,212 @@
 ---
 title: "Exporters"
-description: "Choose how Corelens sends telemetry from your service to a local output or collector."
+description: "Send Corelens logs, metrics, and traces to console, file, or OTLP HTTP destinations."
+sidebarTitle: "Exporters"
 ---
 
-Exporters move telemetry out of the service process. Keep exporter configuration separate from instrumentation choices so you can change destinations without rewriting application code.
+Exporters move telemetry out of your process. Start with console export for local debugging, use file export for diagnostics, and use OTLP HTTP when you want a collector or backend to receive logs, metrics, and traces.
 
-## Console exporter
+Corelens supports:
 
-Use the console exporter for local development and quick verification.
+- `console`
+- `file`
+- `otlp-http`
 
-```javascript
-createCorelens({
-  serviceName: "orders-api",
-  exporter: {
-    type: "console"
-  }
+The top-level `export` block defines shared defaults. Enable each signal under `export.signals` when you want logs, metrics, or traces to use those defaults.
+
+## Console export
+
+Use console export for local development, smoke tests, and quick debugging.
+
+```ts
+const lens = corelens({
+  serviceName: 'orders-api',
+  logs: { enabled: true },
+  metrics: { enabled: true },
+  traces: { enabled: true, samplingRate: 1 },
+  export: {
+    enabled: true,
+    mode: 'simple',
+    destination: {
+      type: 'console',
+      pretty: false,
+    },
+    signals: {
+      metrics: { enabled: true },
+      traces: { enabled: true },
+    },
+  },
 });
 ```
 
-## OTLP exporter
+### Verify it
 
-Use OTLP when sending telemetry to an OpenTelemetry collector.
+Run the service and trigger a log, metric, or span. You should see exported records in stdout.
 
-```javascript
-createCorelens({
-  serviceName: "orders-api",
-  exporter: {
-    type: "otlp",
-    endpoint: "http://otel-collector:4318"
-  }
+### Tradeoff
+
+Console export is easy to inspect, but it is usually not enough for production telemetry. Use a collector, log pipeline, or file shipper for long-running services.
+
+## File export
+
+Use file export for local diagnostics, development snapshots, and environments where another process ships files.
+
+```ts
+const lens = corelens({
+  serviceName: 'orders-api',
+  logs: { enabled: true },
+  metrics: { enabled: true },
+  traces: { enabled: true, samplingRate: 1 },
+  export: {
+    enabled: true,
+    mode: 'batch',
+    destination: {
+      type: 'file',
+      filePath: './observability.jsonl',
+    },
+    signals: {
+      logs: { enabled: true },
+      metrics: { enabled: true },
+      traces: { enabled: true },
+    },
+  },
 });
 ```
 
-## Exporter selection
+### Verify it
 
-| Environment | Exporter |
-|-------------|----------|
-| Local development | `console` |
-| Preview or staging | `otlp` to a non-production collector |
-| Production | `otlp` to a managed collector path |
+Trigger telemetry and inspect the file:
+
+```bash
+tail -f ./observability.jsonl
+```
+
+### Tradeoff
+
+File export is useful for debugging, but production deployments usually want a collector or log shipper. Make sure file growth and rotation are handled outside Corelens.
+
+## OTLP HTTP export
+
+Use OTLP HTTP when sending telemetry to an OpenTelemetry Collector, Grafana Tempo through a collector, or any backend that accepts OTLP HTTP.
+
+Use the collector base URL. Corelens resolves signal endpoints to:
+
+- `/v1/logs`
+- `/v1/metrics`
+- `/v1/traces`
+
+```ts
+const lens = corelens({
+  serviceName: 'orders-api',
+  logs: { enabled: true },
+  metrics: { enabled: true },
+  traces: { enabled: true, samplingRate: 0.5 },
+  export: {
+    enabled: true,
+    mode: 'batch',
+    destination: {
+      type: 'otlp-http',
+      endpoint: 'http://localhost:4318',
+      headers: {
+        authorization: `Bearer ${process.env.OTLP_TOKEN}`,
+      },
+      timeoutMs: 5000,
+    },
+    retry: {
+      enabled: true,
+      maxRetries: 3,
+      initialDelayMs: 100,
+      maxDelayMs: 2000,
+    },
+    circuitBreaker: {
+      enabled: true,
+      failureThreshold: 5,
+      resetTimeoutMs: 30000,
+    },
+    batch: {
+      maxQueueSize: 2048,
+      maxExportBatchSize: 512,
+      scheduledDelayMs: 2000,
+      shutdownTimeoutMs: 5000,
+      fullQueuePolicy: 'drop-newest',
+    },
+    signals: {
+      logs: { enabled: true },
+      metrics: { enabled: true },
+      traces: { enabled: true },
+    },
+  },
+});
+```
+
+### Verify it
+
+1. Start your collector or backend.
+2. Trigger a request that emits logs, metrics, or traces.
+3. Check `lens.getStats()` for exporter failures and dropped items.
+4. Check the collector logs or backend UI for received telemetry.
+
+## OpenTelemetry Collector setup
+
+Use a collector when you want one local or nearby process to receive telemetry from services and forward it to storage.
+
+Minimal collector receiver configuration:
+
+```yaml
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+
+exporters:
+  debug:
+    verbosity: basic
+
+service:
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+```
+
+Point Corelens at `http://localhost:4318` during local testing.
+
+## Grafana Tempo setup
+
+Grafana Tempo stores traces. Corelens should usually send traces to an OpenTelemetry Collector, then the collector forwards them to Tempo.
+
+Use this when you want production trace storage and querying through Grafana.
+
+Corelens config:
+
+```ts
+export: {
+  enabled: true,
+  mode: 'batch',
+  destination: {
+    type: 'otlp-http',
+    endpoint: 'http://otel-collector:4318',
+  },
+  signals: {
+    traces: { enabled: true },
+  },
+}
+```
+
+Collector configuration depends on your Tempo deployment. Keep the Corelens side pointed at the collector base URL.
 
 ## Next steps
 

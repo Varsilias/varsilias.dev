@@ -1,49 +1,189 @@
 ---
 title: "Production"
-description: "Run Corelens safely in production services with sampling, exporter, and failure-handling guidance."
+description: "Run Corelens with bounded queues, retry, circuit breakers, sampling, shutdown, and safe telemetry practices."
 sidebarTitle: "Production"
 ---
 
-Production instrumentation should improve debugging without becoming a new source of outages.
+Production telemetry should help you debug the service without becoming another outage path.
+
+Corelens gives you the pieces you need for safer export behavior: batching, bounded queues, retry, circuit breakers, sampling, and shutdown.
 
 ## Production checklist
 
 - Set a stable `serviceName`.
-- Send telemetry to an OpenTelemetry collector instead of printing to stdout.
-- Tune `sampleRate` for high-volume services.
-- Keep secrets out of span attributes and metric labels.
-- Monitor exporter failures separately from application failures.
+- Ignore noisy routes such as `/health`, `/metrics`, and internal debug routes.
+- Use `batch` mode for OTLP export.
+- Configure retry for transient network failures.
+- Configure a circuit breaker for repeated exporter failures.
+- Keep queues bounded and choose an overflow policy intentionally.
+- Use sampling for high-traffic trace workloads.
+- Call `lens.shutdown()` on process termination.
+- Watch `lens.getStats()` during rollout.
+- Prefer sending OTLP to a local or nearby collector.
+- Keep sensitive values out of logs, span attributes, metric labels, and exporter headers.
 
-## Recommended configuration
+## Recommended OTLP configuration
 
-```javascript
-createCorelens({
-  serviceName: "payments-api",
-  environment: "production",
-  sampleRate: 0.25,
-  exporter: {
-    type: "otlp",
-    endpoint: process.env.CORELENS_OTLP_ENDPOINT
-  }
+```ts
+const lens = corelens({
+  serviceName: 'orders-api',
+  logs: { enabled: true, enrichWithTraceContext: true },
+  metrics: {
+    enabled: true,
+    runtime: { enabled: true, intervalMs: 5000 },
+    http: { enabled: true, ignoredRoutes: ['/metrics', '/health'] },
+  },
+  traces: {
+    enabled: true,
+    samplingRate: 0.25,
+    http: { enabled: true, ignoredRoutes: ['/health'] },
+  },
+  export: {
+    enabled: true,
+    mode: 'batch',
+    destination: {
+      type: 'otlp-http',
+      endpoint: 'http://otel-collector:4318',
+      timeoutMs: 5000,
+    },
+    retry: {
+      enabled: true,
+      maxRetries: 3,
+      initialDelayMs: 100,
+      maxDelayMs: 2000,
+    },
+    circuitBreaker: {
+      enabled: true,
+      failureThreshold: 5,
+      resetTimeoutMs: 30000,
+    },
+    batch: {
+      maxQueueSize: 2048,
+      maxExportBatchSize: 512,
+      scheduledDelayMs: 2000,
+      shutdownTimeoutMs: 5000,
+      fullQueuePolicy: 'drop-newest',
+    },
+    signals: {
+      logs: { enabled: true },
+      metrics: { enabled: true },
+      traces: { enabled: true },
+    },
+  },
 });
 ```
 
-## Failure behavior
+## Batching
 
-Telemetry export should not block the request path. If an exporter fails, Corelens should drop or buffer telemetry according to configuration and report the exporter failure.
+Batching reduces export overhead by sending groups of telemetry records on a schedule.
+
+Important batch options:
+
+| Option | What it controls |
+|--------|------------------|
+| `maxQueueSize` | Maximum queued telemetry items |
+| `maxExportBatchSize` | Maximum items sent in one export call |
+| `scheduledDelayMs` | Time between scheduled export attempts |
+| `shutdownTimeoutMs` | Time allowed for final flush during shutdown |
+| `fullQueuePolicy` | What happens when the queue is full |
+
+Use batch mode for OTLP export in production. Use simple mode only when you need immediate export behavior and understand the overhead.
+
+## Retry behavior
+
+Retry helps with temporary network or collector failures.
+
+```ts
+retry: {
+  enabled: true,
+  maxRetries: 3,
+  initialDelayMs: 100,
+  maxDelayMs: 2000,
+}
+```
+
+Retries should be bounded. Telemetry delivery should not block customer-facing request success.
+
+## Circuit breaker
+
+A circuit breaker protects the service from repeatedly calling a failing exporter.
+
+```ts
+circuitBreaker: {
+  enabled: true,
+  failureThreshold: 5,
+  resetTimeoutMs: 30000,
+}
+```
+
+When the exporter keeps failing, the circuit opens. After `resetTimeoutMs`, Corelens can try again.
+
+## Sampling
+
+Sampling reduces trace volume. It does not replace metrics.
+
+```ts
+traces: {
+  enabled: true,
+  samplingRate: 0.25,
+}
+```
+
+Start with more traces during rollout. Lower the rate once you know which spans are useful and your metrics cover aggregate behavior.
+
+## Graceful shutdown
+
+Call `shutdown()` when the process exits so batched telemetry can flush.
+
+```ts
+let shuttingDown = false;
+
+async function shutdown(signal: NodeJS.Signals) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+
+  lens.logger.info('shutdown requested', { signal });
+  const result = await lens.shutdown();
+
+  if (!result.ok) {
+    process.stderr.write(JSON.stringify(result) + '\n');
+    process.exit(1);
+  }
+
+  process.exit(0);
+}
+
+process.once('SIGINT', shutdown);
+process.once('SIGTERM', shutdown);
+```
+
+Corelens can also register process signal handlers:
+
+```ts
+lifecycle: {
+  handleProcessSignals: true,
+}
+```
+
+Use one approach per app.
+
+## Debug stats during rollout
+
+Expose `lens.getStats()` only on internal routes.
+
+```ts
+app.get('/debug/stats', (_req, res) => {
+  res.json(lens.getStats());
+});
+```
+
+Use it to inspect exporter failures, queue length, dropped items, shutdown result, and trace processor state.
 
 <Warning>
-  Do not make customer-facing request success depend on telemetry delivery.
+  Treat debug stats as internal operational data. Do not expose the endpoint publicly without authentication.
 </Warning>
-
-## Rollout strategy
-
-1. Enable Corelens in one low-risk service.
-2. Use full sampling until the collector path is confirmed.
-3. Add instrumentation to the most important operations first.
-4. Reduce sampling only after dashboards and traces answer real debugging questions.
 
 ## Next steps
 
-- [Benchmarks](/corelens/benchmarks)
+- [Exporters](/corelens/concepts/exporters)
 - [Troubleshooting](/corelens/troubleshooting)

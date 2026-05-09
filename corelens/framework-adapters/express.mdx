@@ -1,0 +1,61 @@
+---
+title: "Express adapter"
+description: "Register Corelens HTTP metrics and tracing in an Express application."
+sidebarTitle: "Express"
+---
+
+Use the Express adapters when your service is built with `express`.
+
+## Requirements
+
+```bash
+npm install express @varsilias/corelens
+```
+
+## Setup
+
+```ts
+import express from 'express';
+import { corelens, PrometheusTextExporter } from '@varsilias/corelens';
+import {
+  ExpressMetricsAdapter,
+  ExpressTracingAdapter,
+} from '@varsilias/corelens/adapter';
+
+const app = express();
+const lens = corelens({
+  serviceName: 'express-api',
+  logs: { enabled: true },
+  metrics: { enabled: true, http: { enabled: true } },
+  traces: { enabled: true, samplingRate: 1, http: { enabled: true } },
+});
+
+new ExpressMetricsAdapter().register(app, lens.httpMetricsRecorder);
+new ExpressTracingAdapter().register(app, lens.httpTracingRecorder);
+
+const prometheus = new PrometheusTextExporter();
+
+app.get('/metrics', (_req, res) => {
+  res.type('text/plain').send(prometheus.render(lens.metrics.snapshot()));
+});
+
+app.get('/debug/stats', (_req, res) => {
+  res.json(lens.getStats());
+});
+```
+
+## Verify it
+
+1. Send a request to an Express route.
+2. Open `/metrics` and check for HTTP metrics.
+3. Check your trace destination for a server span.
+4. Open `/debug/stats` only from a trusted environment.
+
+<Warning>
+  Do not expose `/debug/stats` publicly without authentication.
+</Warning>
+
+## Next steps
+
+- [Metrics configuration](/corelens/configuration/metrics)
+- [Traces configuration](/corelens/configuration/traces)

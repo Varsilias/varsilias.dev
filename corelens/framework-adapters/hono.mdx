@@ -1,0 +1,53 @@
+---
+title: "Hono adapter"
+description: "Register Corelens HTTP metrics and tracing in a Hono application."
+sidebarTitle: "Hono"
+---
+
+Use the Hono adapters when your service is built with `hono`.
+
+## Requirements
+
+```bash
+npm install hono @varsilias/corelens
+```
+
+## Setup
+
+```ts
+import { Hono } from 'hono';
+import { corelens } from '@varsilias/corelens';
+import {
+  HonoMetricsAdapter,
+  HonoTracingAdapter,
+} from '@varsilias/corelens/adapter';
+
+const app = new Hono();
+const lens = corelens({
+  serviceName: 'hono-api',
+  logs: { enabled: true },
+  metrics: { enabled: true, http: { enabled: true } },
+  traces: { enabled: true, samplingRate: 1, http: { enabled: true } },
+});
+
+new HonoMetricsAdapter().register(app, lens.httpMetricsRecorder);
+new HonoTracingAdapter().register(app, lens.httpTracingRecorder);
+```
+
+## Verify it
+
+1. Send a request to a Hono route.
+2. Check HTTP metrics through your exporter.
+3. Check traces for a server span.
+4. Check `lens.getStats()` if the adapter appears inactive.
+
+## Common mistakes
+
+- Registering adapters before the Corelens instance exists.
+- Enabling adapter registration while HTTP metrics or tracing are disabled.
+- Treating Hono route paths with dynamic segments as low-cardinality labels without checking output.
+
+## Next steps
+
+- [Metrics configuration](/corelens/configuration/metrics)
+- [Traces configuration](/corelens/configuration/traces)
