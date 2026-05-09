@@ -1,0 +1,28 @@
+---
+title: "Production"
+description: "Run Concile safely with repeatable jobs, audit trails, and review workflows."
+sidebarTitle: "Production"
+---
+
+Production reconciliation should be repeatable. A team should be able to explain what ran, which rules applied, and why each outcome was produced.
+
+## Production checklist
+
+- Use stable run names.
+- Store source snapshots or source query metadata.
+- Version matching rules.
+- Keep reviewer decisions.
+- Alert on unexpected drift rates, not only job failure.
+
+## Scheduling
+
+Run reconciliation after source systems have finished writing the period you are comparing. For settlement workflows, that usually means running after processor files or ledger close jobs complete.
+
+## Failure handling
+
+If a run fails, mark the run as failed and keep partial metadata. Do not overwrite the previous successful run without preserving its result.
+
+## Next steps
+
+- [Benchmarks](/concile/benchmarks)
+- [Troubleshooting](/concile/troubleshooting)

@@ -1,0 +1,41 @@
+---
+title: "Tracing"
+description: "Use traces to follow request and job execution through Corelens instrumentation."
+---
+
+Tracing explains what happened during one unit of work. In Corelens, a trace is made of spans that describe the request, job, or operation path.
+
+## Span shape
+
+A useful span has a name, timing, status, and attributes.
+
+```javascript
+await corelens.span("invoice.reconcile", async span => {
+  span.setAttribute("invoice.id", invoice.id);
+  span.setAttribute("invoice.currency", invoice.currency);
+  await reconcileInvoice(invoice);
+});
+```
+
+## Naming spans
+
+Use names that describe the operation, not the implementation detail.
+
+| Prefer | Avoid |
+|--------|-------|
+| `invoice.reconcile` | `runFunction` |
+| `payment.authorize` | `stripeCall` |
+| `report.generate` | `loopRows` |
+
+## Attributes
+
+Attributes make traces searchable. Keep values low-cardinality unless you have a specific debugging need.
+
+<Warning>
+  Do not put secrets, access tokens, session IDs, or full payloads in span attributes.
+</Warning>
+
+## Next steps
+
+- [Architecture](/corelens/architecture)
+- [Troubleshooting](/corelens/troubleshooting)

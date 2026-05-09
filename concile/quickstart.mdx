@@ -1,0 +1,89 @@
+---
+title: "Quickstart"
+description: "Run a minimal Concile reconciliation and inspect the result categories."
+sidebarTitle: "Quickstart"
+keywords:
+  - Concile quickstart
+  - reconciliation workflow
+  - Go reconciliation
+  - financial data matching
+---
+
+This quickstart runs a small reconciliation using inline records. Use it to understand the matching model before connecting Concile to real data sources.
+
+## Prerequisites
+
+- Go 1.22 or newer
+- A new test directory
+
+## 1. Create a project
+
+```bash
+mkdir concile-demo
+cd concile-demo
+go mod init concile-demo
+go get github.com/Varsilias/concile
+```
+
+## 2. Add a reconciliation
+
+Create `main.go`:
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/Varsilias/concile"
+)
+
+func main() {
+	source := []concile.Record{
+		{ID: "txn_1", Amount: 2500, Currency: "USD", Reference: "INV-100"},
+		{ID: "txn_2", Amount: 1800, Currency: "USD", Reference: "INV-101"},
+	}
+
+	expected := []concile.Record{
+		{ID: "inv_100", Amount: 2500, Currency: "USD", Reference: "INV-100"},
+		{ID: "inv_102", Amount: 3200, Currency: "USD", Reference: "INV-102"},
+	}
+
+	result := concile.Match(source, expected, concile.Rule{
+		Fields: []string{"amount", "currency", "reference"},
+	})
+
+	fmt.Printf("matched=%d unmatched=%d disputed=%d\n",
+		len(result.Matched),
+		len(result.Unmatched),
+		len(result.Disputed),
+	)
+}
+```
+
+## 3. Run it
+
+```bash
+go run .
+```
+
+Expected output:
+
+```text
+matched=1 unmatched=2 disputed=0
+```
+
+<Warning>
+  The package API shown here is the intended public contract for the docs. Confirm exported names against the package before publishing a stable release.
+</Warning>
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Configuration" href="/concile/configuration" icon="sliders-horizontal">
+    Define sources, tolerances, and rule behavior.
+  </Card>
+  <Card title="Reconciliation concepts" href="/concile/concepts/reconciliation" icon="git-compare">
+    Learn the domain model behind matched and unmatched records.
+  </Card>
+</CardGroup>

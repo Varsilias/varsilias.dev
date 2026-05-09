@@ -1,0 +1,49 @@
+---
+title: "Production"
+description: "Run Corelens safely in production services with sampling, exporter, and failure-handling guidance."
+sidebarTitle: "Production"
+---
+
+Production instrumentation should improve debugging without becoming a new source of outages.
+
+## Production checklist
+
+- Set a stable `serviceName`.
+- Send telemetry to an OpenTelemetry collector instead of printing to stdout.
+- Tune `sampleRate` for high-volume services.
+- Keep secrets out of span attributes and metric labels.
+- Monitor exporter failures separately from application failures.
+
+## Recommended configuration
+
+```javascript
+createCorelens({
+  serviceName: "payments-api",
+  environment: "production",
+  sampleRate: 0.25,
+  exporter: {
+    type: "otlp",
+    endpoint: process.env.CORELENS_OTLP_ENDPOINT
+  }
+});
+```
+
+## Failure behavior
+
+Telemetry export should not block the request path. If an exporter fails, Corelens should drop or buffer telemetry according to configuration and report the exporter failure.
+
+<Warning>
+  Do not make customer-facing request success depend on telemetry delivery.
+</Warning>
+
+## Rollout strategy
+
+1. Enable Corelens in one low-risk service.
+2. Use full sampling until the collector path is confirmed.
+3. Add instrumentation to the most important operations first.
+4. Reduce sampling only after dashboards and traces answer real debugging questions.
+
+## Next steps
+
+- [Benchmarks](/corelens/benchmarks)
+- [Troubleshooting](/corelens/troubleshooting)

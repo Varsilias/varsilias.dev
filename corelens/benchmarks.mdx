@@ -1,0 +1,35 @@
+---
+title: "Benchmarks"
+description: "Track Corelens overhead with transparent benchmark methodology and repeatable measurements."
+sidebarTitle: "Benchmarks"
+---
+
+Benchmarks should explain methodology before results. Use this page to record repeatable measurements as Corelens matures.
+
+## Current status
+
+<span className="badge badge-stable">Methodology tracked</span>
+
+Corelens should publish benchmark results only when the test harness is available in the repository and the numbers can be reproduced.
+
+## Methodology target
+
+Measure at least three scenarios:
+
+| Scenario | What it measures |
+|----------|------------------|
+| Baseline service | Request latency without Corelens |
+| Console exporter | Local instrumentation overhead |
+| OTLP exporter | Collector delivery overhead under load |
+
+## Metrics to report
+
+- p50, p95, and p99 request latency
+- throughput in requests per second
+- memory overhead
+- exporter failure rate under collector outage
+
+## Next steps
+
+- [Architecture](/corelens/architecture)
+- [Production](/corelens/production)

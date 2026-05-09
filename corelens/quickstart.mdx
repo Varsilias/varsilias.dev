@@ -1,0 +1,103 @@
+---
+title: "Quickstart"
+description: "Get Corelens running in a Node.js service and verify telemetry output."
+sidebarTitle: "Quickstart"
+keywords:
+  - Corelens quickstart
+  - Node.js instrumentation
+  - Express observability
+  - OpenTelemetry quickstart
+---
+
+This quickstart adds Corelens to a small Express service and writes telemetry to the console. Use it to verify the instrumentation path before sending data to an external collector.
+
+## Prerequisites
+
+- Node.js 18 or newer
+- A Node.js service, or a new test directory
+
+<Snippet file="installation-note.mdx" />
+
+## 1. Create a test service
+
+```bash
+mkdir corelens-demo
+cd corelens-demo
+npm init -y
+npm install express @varsilias/corelens
+```
+
+## 2. Add instrumentation
+
+Create `server.mjs`:
+
+```javascript
+import express from "express";
+import { createCorelens } from "@varsilias/corelens";
+
+const corelens = createCorelens({
+  serviceName: "corelens-demo",
+  environment: "local",
+  exporter: {
+    type: "console"
+  }
+});
+
+const app = express();
+
+app.use(corelens.httpMiddleware());
+
+app.get("/health", (req, res) => {
+  corelens.increment("healthcheck.requests");
+  res.json({ ok: true });
+});
+
+app.get("/checkout/:id", async (req, res) => {
+  await corelens.span("checkout.load", async span => {
+    span.setAttribute("checkout.id", req.params.id);
+  });
+
+  res.json({ id: req.params.id, status: "loaded" });
+});
+
+app.listen(3000, () => {
+  console.log("Listening on http://localhost:3000");
+});
+```
+
+## 3. Run the service
+
+```bash
+node server.mjs
+```
+
+In another terminal, call the service:
+
+```bash
+curl http://localhost:3000/health
+curl http://localhost:3000/checkout/demo-123
+```
+
+## 4. Verify output
+
+The console exporter should print span and metric records for the HTTP requests. Check for these fields:
+
+- `serviceName` is `corelens-demo`
+- `environment` is `local`
+- the request path appears on the HTTP span
+- `healthcheck.requests` increments after the health check
+
+<Warning>
+  The package API shown here is the intended public SDK contract for the docs. Confirm the exact exported names against the package before publishing a stable release.
+</Warning>
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Configuration" href="/corelens/configuration" icon="sliders-horizontal">
+    Configure service metadata, sampling, and exporters.
+  </Card>
+  <Card title="Production" href="/corelens/production" icon="server">
+    Prepare Corelens for production traffic and collector delivery.
+  </Card>
+</CardGroup>

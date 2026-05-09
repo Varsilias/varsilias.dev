@@ -1,0 +1,46 @@
+---
+title: "Exporters"
+description: "Choose how Corelens sends telemetry from your service to a local output or collector."
+---
+
+Exporters move telemetry out of the service process. Keep exporter configuration separate from instrumentation choices so you can change destinations without rewriting application code.
+
+## Console exporter
+
+Use the console exporter for local development and quick verification.
+
+```javascript
+createCorelens({
+  serviceName: "orders-api",
+  exporter: {
+    type: "console"
+  }
+});
+```
+
+## OTLP exporter
+
+Use OTLP when sending telemetry to an OpenTelemetry collector.
+
+```javascript
+createCorelens({
+  serviceName: "orders-api",
+  exporter: {
+    type: "otlp",
+    endpoint: "http://otel-collector:4318"
+  }
+});
+```
+
+## Exporter selection
+
+| Environment | Exporter |
+|-------------|----------|
+| Local development | `console` |
+| Preview or staging | `otlp` to a non-production collector |
+| Production | `otlp` to a managed collector path |
+
+## Next steps
+
+- [Production](/corelens/production)
+- [Troubleshooting](/corelens/troubleshooting)

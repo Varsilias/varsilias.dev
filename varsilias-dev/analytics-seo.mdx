@@ -1,0 +1,79 @@
+---
+title: "Analytics and SEO"
+description: "Configure Google Analytics 4, Google Search Console, sitemap submission, and search metadata for Varsilias.dev."
+sidebarTitle: "Analytics and SEO"
+keywords:
+  - Google Analytics 4
+  - Google Search Console
+  - sitemap.xml
+  - docs SEO
+  - Varsilias.dev analytics
+---
+
+This page tracks the production setup for search visibility and documentation analytics.
+
+## Current setup
+
+Varsilias.dev includes:
+
+- global SEO metadata in `docs.json`
+- page-level `title`, `description`, and selected `keywords`
+- `robots.txt`
+- `sitemap.xml`
+- `llms.txt`
+- `humans.txt`
+- Google Analytics 4 configuration placeholder
+- Google Search Console verification placeholder
+
+## Fill in Google Analytics 4
+
+Create a GA4 web stream for `https://varsilias.dev`, then replace the placeholder in `docs.json`:
+
+```json
+"integrations": {
+  "ga4": {
+    "measurementId": "G-XXXXXXXXXX"
+  }
+}
+```
+
+Use your real Measurement ID. It starts with `G-`.
+
+## Fill in Google Search Console
+
+Add `https://varsilias.dev` as a URL-prefix property in Google Search Console. Choose the HTML tag verification method and copy only the `content` value.
+
+Replace this placeholder in `docs.json`:
+
+```json
+"seo": {
+  "metatags": {
+    "google-site-verification": "GOOGLE_SEARCH_CONSOLE_VERIFICATION_TOKEN"
+  }
+}
+```
+
+Do not paste the full `<meta>` tag. Paste only the token.
+
+## Submit the sitemap
+
+After deployment, open Google Search Console and submit:
+
+```text
+https://varsilias.dev/sitemap.xml
+```
+
+Mintlify can generate a sitemap automatically, but this project also keeps a root-level `sitemap.xml` so the current public URL set is explicit.
+
+## Maintenance checklist
+
+- Add new public pages to `docs.json`.
+- Add new public pages to `sitemap.xml`.
+- Keep page descriptions specific.
+- Keep `llms.txt` updated for major documentation entry points.
+- Re-submit the sitemap after major namespace changes.
+
+## Next steps
+
+- [Site structure](/varsilias-dev/site-structure)
+- [Review checklist](/varsilias-dev/review-checklist)

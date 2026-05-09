@@ -1,0 +1,55 @@
+---
+title: "Configuration"
+description: "Configure Concile sources, matching rules, tolerances, and result handling."
+sidebarTitle: "Configuration"
+---
+
+Concile configuration describes what records to compare and how strict the comparison should be.
+
+## Example configuration
+
+```yaml
+run:
+  name: daily-settlement
+  timezone: UTC
+
+sources:
+  primary:
+    type: postgres
+    table: processor_transactions
+  expected:
+    type: postgres
+    table: ledger_entries
+
+rules:
+  - name: exact-reference-match
+    fields:
+      - amount
+      - currency
+      - reference
+    tolerance:
+      amount: 0
+```
+
+## Options
+
+| Option | Description |
+|--------|-------------|
+| `run.name` | Stable reconciliation run name |
+| `sources.primary` | Records observed from the external or operational system |
+| `sources.expected` | Records expected by the ledger or internal system |
+| `rules[].fields` | Fields used for matching |
+| `rules[].tolerance.amount` | Accepted amount difference, usually in minor units |
+
+## Rule strictness
+
+Start strict. Loosen rules only when you can explain why a difference should be accepted.
+
+<Tip>
+  Keep high-risk reconciliation rules in code review. A permissive rule can hide real financial drift.
+</Tip>
+
+## Next steps
+
+- [Rules](/concile/concepts/rules)
+- [Production](/concile/production)

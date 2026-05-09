@@ -1,0 +1,32 @@
+---
+title: "Installation"
+description: "Install Concile and confirm the runtime requirements for local development."
+sidebarTitle: "Installation"
+---
+
+Install Concile in the service or job that owns reconciliation work.
+
+## Package managers
+
+```bash
+go get github.com/Varsilias/concile
+```
+
+## Runtime requirements
+
+| Requirement | Notes |
+|-------------|-------|
+| Go 1.22+ | Use the current stable Go release for new services |
+| Persistent storage | Required when reconciliation runs need history |
+| Source adapters | Required when records come from databases, ledgers, or external APIs |
+
+## Verify installation
+
+```bash
+go list -m github.com/Varsilias/concile
+```
+
+## Next steps
+
+- [Quickstart](/concile/quickstart)
+- [Configuration](/concile/configuration)

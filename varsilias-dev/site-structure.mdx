@@ -1,0 +1,33 @@
+---
+title: "Site structure"
+description: "Understand how product namespaces, shared snippets, navigation, and styles fit together."
+sidebarTitle: "Site structure"
+---
+
+The site uses product namespaces so each tool has its own documentation surface.
+
+## Product namespaces
+
+| Namespace | Purpose |
+|-----------|---------|
+| `corelens/` | Observability instrumentation docs |
+| `concile/` | Reconciliation engine docs |
+| `varsilias-dev/` | Contribution and docs-system docs |
+
+## Shared files
+
+| Path | Purpose |
+|------|---------|
+| `docs.json` | Mintlify navigation, branding, and global settings |
+| `style.css` | Shared visual system and landing page styles |
+| `snippets/` | Reusable MDX fragments |
+| `logo/` | Brand logo assets |
+
+## Navigation rules
+
+Every new page must be listed in `docs.json`. Product groups should stay collapsed by default so readers can focus on one namespace at a time.
+
+## Next steps
+
+- [Contributing](/varsilias-dev/contributing)
+- [Local workflow](/varsilias-dev/local-workflow)

@@ -1,0 +1,62 @@
+---
+title: "API reference"
+description: "Reference the Corelens SDK entry points for instrumentation, spans, metrics, and exporters."
+sidebarTitle: "API reference"
+---
+
+This page tracks the intended Corelens SDK surface. Treat it as a living reference until the package reaches a stable release.
+
+## `createCorelens(options)`
+
+Creates a Corelens instance for a service.
+
+```javascript
+const corelens = createCorelens({
+  serviceName: "orders-api",
+  environment: "production",
+  sampleRate: 0.5,
+  exporter: {
+    type: "otlp",
+    endpoint: "http://otel-collector:4318"
+  }
+});
+```
+
+### Options
+
+<ParamField path="serviceName" type="string" required>
+  Stable service identifier used in telemetry records.
+</ParamField>
+
+<ParamField path="environment" type="string">
+  Runtime environment label.
+</ParamField>
+
+<ParamField path="sampleRate" type="number">
+  Fraction of traces to capture from `0` to `1`.
+</ParamField>
+
+<ParamField path="exporter" type="object">
+  Exporter configuration.
+</ParamField>
+
+## `corelens.httpMiddleware()`
+
+Returns HTTP middleware for request instrumentation.
+
+## `corelens.span(name, fn)`
+
+Runs a function inside a named span.
+
+## `corelens.increment(name, attributes)`
+
+Increments a counter metric.
+
+## `corelens.timing(name, fn)`
+
+Measures the duration of an async operation.
+
+## Next steps
+
+- [Quickstart](/corelens/quickstart)
+- [Configuration](/corelens/configuration)

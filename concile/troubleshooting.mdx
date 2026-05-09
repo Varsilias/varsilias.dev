@@ -1,0 +1,34 @@
+---
+title: "Troubleshooting"
+description: "Diagnose common Concile matching, rule, and source data issues."
+sidebarTitle: "Troubleshooting"
+---
+
+Start from the outcome category. Then inspect source freshness, normalization, and rule strictness.
+
+## Too many unmatched records
+
+Check these items:
+
+1. Confirm both sources cover the same time window.
+2. Confirm normalization maps fields into the expected names.
+3. Check whether one system writes records later than the other.
+4. Verify rule fields exist on both sides.
+
+## Too many disputed records
+
+Disputes usually mean records are related but values differ.
+
+- Check amount tolerances.
+- Check currency conversion rules.
+- Check fee treatment.
+- Check whether references are reused.
+
+## Results change between runs
+
+Make sure each run records source query metadata and rule versions. If the source data changes after the run, preserve a snapshot or cursor so the result can be explained later.
+
+## Next steps
+
+- [Configuration](/concile/configuration)
+- [Production](/concile/production)

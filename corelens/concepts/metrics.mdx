@@ -1,0 +1,41 @@
+---
+title: "Metrics"
+description: "Use Corelens metrics to track aggregate service behavior over time."
+---
+
+Metrics answer aggregate questions: how often something happens, how long it takes, and whether the rate is changing.
+
+## Counters
+
+Use counters for events that increase over time.
+
+```javascript
+corelens.increment("checkout.completed", {
+  paymentMethod: "card"
+});
+```
+
+## Timings
+
+Use timings for operations where latency matters.
+
+```javascript
+await corelens.timing("report.generate.duration", async () => {
+  await generateReport();
+});
+```
+
+## Metric names
+
+Use stable names. Changing a metric name creates a new time series and breaks dashboards.
+
+| Pattern | Example |
+|---------|---------|
+| `<domain>.<event>` | `checkout.completed` |
+| `<domain>.<operation>.duration` | `report.generate.duration` |
+| `<domain>.<failure>` | `sync.failed` |
+
+## Next steps
+
+- [Configuration](/corelens/configuration)
+- [Production](/corelens/production)

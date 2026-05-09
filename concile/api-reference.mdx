@@ -1,0 +1,34 @@
+---
+title: "API reference"
+description: "Reference the intended Concile SDK surface for records, rules, runs, and outcomes."
+sidebarTitle: "API reference"
+---
+
+This reference tracks the intended Concile SDK surface. Treat exported names as provisional until the first stable release.
+
+## `Record`
+
+Represents one input record from a source.
+
+## `Rule`
+
+Defines fields and tolerances used for matching.
+
+## `Match(source, expected, rule)`
+
+Runs reconciliation for in-memory records.
+
+```go
+result := concile.Match(source, expected, concile.Rule{
+	Fields: []string{"amount", "currency", "reference"},
+})
+```
+
+## `Result`
+
+Contains matched, unmatched, and disputed outcomes.
+
+## Next steps
+
+- [Quickstart](/concile/quickstart)
+- [Configuration](/concile/configuration)

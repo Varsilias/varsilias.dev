@@ -1,0 +1,52 @@
+---
+title: "Installation"
+description: "Install Corelens with npm, pnpm, or yarn and confirm the runtime requirements."
+sidebarTitle: "Installation"
+---
+
+Install Corelens in each Node.js service you want to instrument.
+
+<Snippet file="installation-note.mdx" />
+
+## Package managers
+
+<Tabs>
+  <Tab title="npm">
+    ```bash
+    npm install @varsilias/corelens
+    ```
+  </Tab>
+  <Tab title="pnpm">
+    ```bash
+    pnpm add @varsilias/corelens
+    ```
+  </Tab>
+  <Tab title="yarn">
+    ```bash
+    yarn add @varsilias/corelens
+    ```
+  </Tab>
+</Tabs>
+
+## Optional dependencies
+
+Install the packages your service already uses. Corelens should not force a web framework dependency into services that do not need one.
+
+| Package | Use it when |
+|---------|-------------|
+| `express` | You want Express middleware instrumentation |
+| `@opentelemetry/api` | You already expose OpenTelemetry primitives |
+| collector exporter package | You send telemetry to an OpenTelemetry collector |
+
+## Verify installation
+
+```bash
+npm ls @varsilias/corelens
+```
+
+If the package is installed correctly, your package manager prints the installed version under your project.
+
+## Next steps
+
+- [Quickstart](/corelens/quickstart)
+- [Configuration](/corelens/configuration)

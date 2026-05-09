@@ -1,0 +1,27 @@
+---
+title: "Reconciliation"
+description: "Learn how Concile models matched, unmatched, and disputed reconciliation outcomes."
+---
+
+Reconciliation compares two views of the same business event. Concile turns that comparison into outcomes that can be reviewed.
+
+## Outcomes
+
+| Outcome | Meaning |
+|---------|---------|
+| Matched | Records agree under the configured rule |
+| Unmatched | A record exists on one side but not the other |
+| Disputed | Records are related but differ beyond the allowed tolerance |
+
+## Matching
+
+A match should be explainable. Prefer stable references, amounts, currencies, account IDs, and settlement windows over fuzzy text matching.
+
+## Review
+
+Not every unmatched record is an error. Some are timing differences, pending settlements, or expected retries. Review workflows should preserve decisions so repeated runs become easier to interpret.
+
+## Next steps
+
+- [Rules](/concile/concepts/rules)
+- [Troubleshooting](/concile/troubleshooting)

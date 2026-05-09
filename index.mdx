@@ -1,0 +1,172 @@
+---
+title: "Daniel Okoronkwo"
+description: "Open source infrastructure tools, technical documentation, and contribution guides by Daniel Okoronkwo."
+keywords:
+  - Daniel Okoronkwo
+  - Varsilias
+  - open source developer tools
+  - Corelens
+  - Concile
+  - observability instrumentation
+  - reconciliation engine
+  - technical documentation
+mode: frame
+---
+
+<div data-varsilias-home className="varsilias-shell">
+  <section className="varsilias-hero">
+    <div className="varsilias-section">
+      <div>
+        <span className="varsilias-kicker">varsilias.dev</span>
+
+        <h1>Daniel Okoronkwo</h1>
+
+        <p className="varsilias-hero-copy">
+          I build infrastructure tools for the parts of software that become hard to see at scale:
+          telemetry, integration boundaries, reconciliation flows, and operational feedback loops.
+          This site documents the open source projects; my longer technical writing lives at danielokoronkwo.com.
+        </p>
+
+        <div className="varsilias-actions">
+          <a href="#projects" className="btn-primary">Explore projects</a>
+          <a href="/corelens/quickstart" className="btn-secondary">Read Corelens docs</a>
+          <a href="https://danielokoronkwo.com" className="btn-secondary">Read the blog</a>
+        </div>
+      </div>
+
+      <aside className="varsilias-signal" aria-label="Project focus">
+        <div className="varsilias-signal-grid">
+          <div className="varsilias-signal-item">
+            <span className="varsilias-signal-label">Focus</span>
+            <span className="varsilias-signal-value">Observability</span>
+          </div>
+          <div className="varsilias-signal-item">
+            <span className="varsilias-signal-label">Runtime</span>
+            <span className="varsilias-signal-value">Node.js</span>
+          </div>
+          <div className="varsilias-signal-item">
+            <span className="varsilias-signal-label">System</span>
+            <span className="varsilias-signal-value">Event-driven</span>
+          </div>
+          <div className="varsilias-signal-item">
+            <span className="varsilias-signal-label">Mode</span>
+            <span className="varsilias-signal-value">Open source</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <div className="varsilias-section varsilias-content">
+    <div id="projects" className="varsilias-projects">
+      <div className="varsilias-section-heading">
+        <h2>Open source projects</h2>
+        <p>
+          These projects share one interface system and one documentation shell.
+          Each tool keeps its own path through the docs while inheriting the same visual language.
+        </p>
+      </div>
+
+      <div className="varsilias-grid">
+        <div className="varsilias-card">
+          <div>
+            <span className="varsilias-card-icon">
+              <Icon icon="telescope" size={18} />
+            </span>
+            <h3>Corelens</h3>
+            <p>
+              Lightweight observability instrumentation for Node.js applications.
+              Use it when traces and metrics need to remain portable across vendors.
+            </p>
+          </div>
+
+          <div>
+            <div className="card-meta">
+              <span className="badge badge-stable">Stable</span>
+              <span className="lang-tag">Node.js</span>
+              <span className="lang-tag">TypeScript</span>
+            </div>
+            <div className="card-links">
+              <a href="https://github.com/Varsilias/corelens" className="card-link-muted">GitHub</a>
+              <a href="/corelens/overview" className="card-link-primary">Docs</a>
+            </div>
+          </div>
+        </div>
+
+        <div className="varsilias-card">
+          <div>
+            <span className="varsilias-card-icon">
+              <Icon icon="scale" size={18} />
+            </span>
+            <h3>Concile</h3>
+            <p>
+              A reconciliation engine for event-driven financial systems.
+              Use it to compare expected state against recorded events.
+            </p>
+          </div>
+
+          <div>
+            <div className="card-meta">
+              <span className="badge badge-experimental">Experimental</span>
+              <span className="lang-tag">Golang</span>
+              <span className="lang-tag">Databases</span>
+            </div>
+            <div className="card-links">
+              <a href="https://github.com/Varsilias/concile" className="card-link-muted">GitHub</a>
+              <a href="/concile/overview" className="card-link-primary">Docs</a>
+            </div>
+          </div>
+        </div>
+
+        <div className="varsilias-card">
+          <div>
+            <span className="varsilias-card-icon">
+              <Icon icon="book-open" size={18} />
+            </span>
+            <h3>Varsilias.dev</h3>
+            <p>
+              The documentation project for these open source tools.
+              Use it to contribute clearer guides, examples, and architecture notes.
+            </p>
+          </div>
+
+          <div>
+            <div className="card-meta">
+              <span className="badge badge-stable">Stable</span>
+              <span className="lang-tag">Docs</span>
+              <span className="lang-tag">MDX</span>
+            </div>
+            <div className="card-links">
+              <a href="https://github.com/Varsilias/varsilias.dev" className="card-link-muted">GitHub</a>
+              <a href="/varsilias-dev/overview" className="card-link-primary">Docs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div className="varsilias-philosophy">
+      <div className="varsilias-section-heading">
+        <h2>On building tools</h2>
+      </div>
+
+      <p>
+        I am drawn to tools that make distributed systems easier to reason about under pressure.
+        Reliability is not a slogan in that work; it is the result of clear interfaces, useful signals,
+        and defaults that make the next failure easier to diagnose.
+      </p>
+
+      <p>
+        Open source keeps the work inspectable. It also forces the documentation to explain the tradeoffs
+        plainly enough for someone else to run, adapt, or challenge the tool. I use
+        <a href="https://danielokoronkwo.com">danielokoronkwo.com</a> for broader technical essays, while
+        varsilias.dev stays focused on project documentation and contribution paths.
+      </p>
+    </div>
+
+    <p className="varsilias-footer-note">
+      Built and maintained by <a href="https://danielokoronkwo.com">Daniel Okoronkwo</a>.
+      Source lives on <a href="https://github.com/Varsilias">GitHub</a>.
+    </p>
+  </div>
+</div>

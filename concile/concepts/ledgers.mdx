@@ -1,0 +1,26 @@
+---
+title: "Ledgers"
+description: "Understand how Concile treats ledgers and operational systems during reconciliation."
+---
+
+Concile does not replace your ledger. It compares ledger expectations against records from processors, banks, queues, or internal systems.
+
+## Ledger role
+
+The ledger is usually the expected side of reconciliation. It should describe what the business believes happened.
+
+## Operational role
+
+Operational systems describe what was observed: processor transactions, settlement files, webhook events, or database rows.
+
+## Common drift
+
+- The processor has a transaction the ledger never recorded.
+- The ledger has an entry for a transaction that failed upstream.
+- Amounts differ because of fees, rounding, or currency conversion.
+- Events arrive late and appear in different settlement windows.
+
+## Next steps
+
+- [Reconciliation](/concile/concepts/reconciliation)
+- [Production](/concile/production)

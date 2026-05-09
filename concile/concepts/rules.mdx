@@ -1,0 +1,37 @@
+---
+title: "Rules"
+description: "Define Concile matching rules that stay deterministic, reviewable, and safe."
+---
+
+Rules decide whether records represent the same business event. Keep them deterministic and easy to explain.
+
+## Rule anatomy
+
+```yaml
+name: settlement-reference-match
+fields:
+  - amount
+  - currency
+  - settlement_reference
+tolerance:
+  amount: 0
+```
+
+## Good rules
+
+- Use stable fields.
+- Define amount tolerances explicitly.
+- Keep rule names tied to business meaning.
+- Produce enough detail for review.
+
+## Risky rules
+
+- Fuzzy matching without review.
+- Matching on mutable names or descriptions.
+- Ignoring currency or account boundaries.
+- Hiding amount differences under broad tolerances.
+
+## Next steps
+
+- [Configuration](/concile/configuration)
+- [FAQ](/concile/faq)

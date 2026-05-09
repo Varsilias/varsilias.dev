@@ -1,0 +1,185 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "almond",
+  "name": "Varsilias",
+  "description": "Open source infrastructure tools and documentation by Daniel Okoronkwo.",
+  "colors": {
+    "primary": "#7c6af7",
+    "light": "#4fc3f7",
+    "dark": "#7c6af7"
+  },
+  "favicon": "/favicon.ico",
+  "icons": {
+    "library": "lucide"
+  },
+  "styling": {
+    "eyebrows": "breadcrumbs"
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "assistant",
+      "mcp",
+      "add-mcp"
+    ]
+  },
+  "seo": {
+    "indexing": "navigable",
+    "metatags": {
+      "robots": "index,follow",
+      "googlebot": "index,follow",
+      "google-site-verification": "GOOGLE_SEARCH_CONSOLE_VERIFICATION_TOKEN"
+    }
+  },
+  "navigation": {
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Home",
+          "icon": "house",
+          "href": "/"
+        },
+        {
+          "anchor": "Corelens",
+          "icon": "telescope",
+          "href": "/corelens/overview"
+        },
+        {
+          "anchor": "Concile",
+          "icon": "scale",
+          "href": "/concile/overview"
+        },
+        {
+          "anchor": "Docs project",
+          "icon": "book-open",
+          "href": "/varsilias-dev/overview"
+        },
+        {
+          "anchor": "GitHub",
+          "icon": "github",
+          "href": "https://github.com/Varsilias"
+        }
+      ]
+    },
+    "directory": "card",
+    "groups": [
+      {
+        "group": "Projects",
+        "pages": [
+          {
+            "group": "Corelens",
+            "icon": "telescope",
+            "expanded": false,
+            "pages": [
+              "corelens/overview",
+              "corelens/quickstart",
+              "corelens/installation",
+              "corelens/configuration",
+              "corelens/architecture",
+              {
+                "group": "Core concepts",
+                "expanded": false,
+                "pages": [
+                  "corelens/concepts/tracing",
+                  "corelens/concepts/metrics",
+                  "corelens/concepts/exporters"
+                ]
+              },
+              "corelens/production",
+              "corelens/benchmarks",
+              "corelens/api-reference",
+              "corelens/faq",
+              "corelens/troubleshooting"
+            ]
+          },
+          {
+            "group": "Concile",
+            "icon": "scale",
+            "expanded": false,
+            "pages": [
+              "concile/overview",
+              "concile/quickstart",
+              "concile/installation",
+              "concile/configuration",
+              "concile/architecture",
+              {
+                "group": "Reconciliation concepts",
+                "expanded": false,
+                "pages": [
+                  "concile/concepts/reconciliation",
+                  "concile/concepts/ledgers",
+                  "concile/concepts/rules"
+                ]
+              },
+              "concile/production",
+              "concile/benchmarks",
+              "concile/api-reference",
+              "concile/faq",
+              "concile/troubleshooting"
+            ]
+          },
+          {
+            "group": "Varsilias.dev",
+            "icon": "book-open",
+            "expanded": false,
+            "pages": [
+              "varsilias-dev/overview",
+              "varsilias-dev/contributing",
+              "varsilias-dev/content-style",
+              "varsilias-dev/site-structure",
+              "varsilias-dev/local-workflow",
+              "varsilias-dev/analytics-seo",
+              "varsilias-dev/review-checklist"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Blog",
+        "href": "https://danielokoronkwo.com"
+      },
+      {
+        "label": "GitHub",
+        "href": "https://github.com/Varsilias"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Explore docs",
+      "href": "/corelens/quickstart"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/Varsilias"
+    }
+  },
+  "integrations": {
+    "ga4": {
+      "measurementId": "G-F279JJRGB3"
+    }
+  },
+  "metadata": {
+    "title": "Varsilias - Open source infrastructure tools by Daniel Okoronkwo",
+    "description": "Documentation for Corelens, Concile, and the Varsilias.dev open source documentation project by Daniel Okoronkwo.",
+    "author": "Daniel Okoronkwo",
+    "keywords": "Daniel Okoronkwo, Varsilias, Corelens, Concile, open source developer tools, observability instrumentation, Node.js observability, OpenTelemetry, reconciliation engine, financial systems, technical documentation",
+    "og:title": "Varsilias - Open source infrastructure tools by Daniel Okoronkwo",
+    "og:description": "Explore Corelens, Concile, and Varsilias.dev: open source infrastructure tools, technical docs, and contribution guides by Daniel Okoronkwo.",
+    "og:url": "https://varsilias.dev",
+    "og:site_name": "Varsilias",
+    "og:type": "website",
+    "twitter:card": "summary_large_image",
+    "twitter:title": "Varsilias - Open source infrastructure tools",
+    "twitter:description": "Open source documentation for Corelens, Concile, and Varsilias.dev by Daniel Okoronkwo."
+  }
+}

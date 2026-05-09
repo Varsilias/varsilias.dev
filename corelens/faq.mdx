@@ -1,0 +1,30 @@
+---
+title: "FAQ"
+description: "Answers to common Corelens adoption and design questions."
+sidebarTitle: "FAQ"
+---
+
+## Is Corelens a replacement for OpenTelemetry?
+
+No. Corelens is an application-level instrumentation layer that should work with OpenTelemetry-compatible export paths. Use OpenTelemetry directly if your team already has a complete setup and does not need a smaller wrapper.
+
+## Does Corelens store telemetry?
+
+No. Corelens emits telemetry from your service. Storage, querying, and retention belong to your collector or observability backend.
+
+## Can I use Corelens without a vendor?
+
+Yes. Use the console exporter locally or send OTLP telemetry to your own OpenTelemetry collector.
+
+## Should every function become a span?
+
+No. Instrument operations that explain system behavior: external calls, queue work, reconciliation steps, expensive computations, and meaningful domain transitions.
+
+## Is the SDK stable?
+
+Yes. Treat the documented SDK contract as stable for application integration. Breaking changes should include migration notes before release.
+
+## Next steps
+
+- [Architecture](/corelens/architecture)
+- [Troubleshooting](/corelens/troubleshooting)

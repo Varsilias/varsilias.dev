@@ -1,0 +1,24 @@
+# Varsilias
+
+Varsilias is the open source documentation home for infrastructure tools built by Daniel Okoronkwo.
+
+## Primary links
+
+- Site: https://varsilias.dev
+- Blog: https://danielokoronkwo.com
+- GitHub: https://github.com/Varsilias
+- Sitemap: https://varsilias.dev/sitemap.xml
+
+## Projects
+
+- Corelens: stable Node.js observability instrumentation for portable traces and metrics.
+- Concile: experimental reconciliation engine for event-driven financial systems built with Golang.
+- Varsilias.dev: documentation and contribution guide for the open source docs platform.
+
+## Useful docs
+
+- Corelens overview: https://varsilias.dev/corelens/overview
+- Corelens quickstart: https://varsilias.dev/corelens/quickstart
+- Concile overview: https://varsilias.dev/concile/overview
+- Varsilias.dev contributing: https://varsilias.dev/varsilias-dev/contributing
+- Analytics and SEO setup: https://varsilias.dev/varsilias-dev/analytics-seo
