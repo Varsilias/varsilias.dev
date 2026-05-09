@@ -4,10 +4,10 @@ Varsilias is the open source documentation home for infrastructure tools built b
 
 ## Primary links
 
-- Site: https://varsilias.dev
+- Site: https://www.varsilias.dev
 - Blog: https://danielokoronkwo.com
 - GitHub: https://github.com/Varsilias
-- Sitemap: https://varsilias.dev/sitemap.xml
+- Sitemap: https://www.varsilias.dev/sitemap.xml
 
 ## Projects
 
@@ -17,8 +17,8 @@ Varsilias is the open source documentation home for infrastructure tools built b
 
 ## Useful docs
 
-- Corelens overview: https://varsilias.dev/corelens/overview
-- Corelens quickstart: https://varsilias.dev/corelens/quickstart
-- Concile overview: https://varsilias.dev/concile/overview
-- Varsilias.dev contributing: https://varsilias.dev/varsilias-dev/contributing
-- Analytics and SEO setup: https://varsilias.dev/varsilias-dev/analytics-seo
+- Corelens overview: https://www.varsilias.dev/corelens/overview
+- Corelens quickstart: https://www.varsilias.dev/corelens/quickstart
+- Concile overview: https://www.varsilias.dev/concile/overview
+- Varsilias.dev contributing: https://www.varsilias.dev/varsilias-dev/contributing
+- Analytics and SEO setup: https://www.varsilias.dev/varsilias-dev/analytics-seo

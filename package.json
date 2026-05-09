@@ -1,0 +1,21 @@
+{
+  "name": "varsilias.dev",
+  "version": "1.0.0",
+  "description": "Documentation for open source infrastructure tools by [Daniel Okoronkwo](https://danielokoronkwo.com).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm i -g mint && mint export --output export.zip && rm -rf dist && mkdir dist && unzip -q export.zip -d dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Varsilias/varsilias.dev.git"
+  },
+  "keywords": [],
+  "author": "Daniel Okoronkwo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Varsilias/varsilias.dev/issues"
+  },
+  "homepage": "https://github.com/Varsilias/varsilias.dev#readme"
+}

@@ -5,5 +5,5 @@ GitHub: https://github.com/Varsilias
 
 /* SITE */
 Name: Varsilias
-URL: https://varsilias.dev
+URL: https://www.varsilias.dev
 Purpose: Open source documentation for infrastructure tools and contribution paths.

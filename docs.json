@@ -29,7 +29,7 @@
     "metatags": {
       "robots": "index,follow",
       "googlebot": "index,follow",
-      "google-site-verification": "GOOGLE_SEARCH_CONSOLE_VERIFICATION_TOKEN"
+      "google-site-verification": "yRP3lU9idCfsynop47_shK6yZipQcZzYpehjElmWZbE"
     }
   },
   "navigation": {
@@ -175,7 +175,7 @@
     "keywords": "Daniel Okoronkwo, Varsilias, Corelens, Concile, open source developer tools, observability instrumentation, Node.js observability, OpenTelemetry, reconciliation engine, financial systems, technical documentation",
     "og:title": "Varsilias - Open source infrastructure tools by Daniel Okoronkwo",
     "og:description": "Explore Corelens, Concile, and Varsilias.dev: open source infrastructure tools, technical docs, and contribution guides by Daniel Okoronkwo.",
-    "og:url": "https://varsilias.dev",
+    "og:url": "https://www.varsilias.dev",
     "og:site_name": "Varsilias",
     "og:type": "website",
     "twitter:card": "summary_large_image",
