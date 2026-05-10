@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 56" width="280" height="56" role="img">
+  <title>varsilias.dev</title>
+  <desc>varsilias.dev logo — horizontal lockup, light theme. Geometric V-lens mark with wordmark.</desc>
+
+  <defs>
+    <linearGradient id="vg-l" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c6af7"/>
+      <stop offset="100%" stop-color="#4fc3f7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon mark group -->
+  <g id="mark" aria-hidden="true">
+    <!-- Container square with rounded corners -->
+    <rect x="0" y="4" width="48" height="48" rx="10" fill="#ffffff" stroke="#cbc6ed" stroke-width="1"/>
+
+    <!-- V — left arm: gradient accent -->
+    <line x1="10" y1="15" x2="24" y2="37" stroke="url(#vg-l)" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- V — right arm: dark slate -->
+    <line x1="38" y1="15" x2="24" y2="37" stroke="#1f1c3d" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Lens aperture arc — top, hairline -->
+    <path d="M 9 17 A 20 18 0 0 1 39 17" fill="none" stroke="#cbc6ed" stroke-width="1" stroke-linecap="round"/>
+
+    <!-- Focal dot — the convergence point -->
+    <circle cx="24" cy="39.5" r="2.4" fill="url(#vg-l)"/>
+  </g>
+
+  <!-- Wordmark group -->
+  <g id="wordmark">
+    <!-- "varsilias" — primary weight -->
+    <text
+      x="62"
+      y="32"
+      font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif"
+      font-size="23"
+      font-weight="500"
+      fill="#1a1830"
+      letter-spacing="-0.025em"
+    >varsilias</text>
+
+    <!-- ".dev" — accent color, lighter weight -->
+    <text
+      x="62"
+      y="46"
+      font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif"
+      font-size="13"
+      font-weight="400"
+      fill="#7c6af7"
+      letter-spacing="0.01em"
+    >.dev</text>
+  </g>
+</svg>
