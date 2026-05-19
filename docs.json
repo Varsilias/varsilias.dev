@@ -94,7 +94,8 @@
                   "corelens/framework-adapters/overview",
                   "corelens/framework-adapters/express",
                   "corelens/framework-adapters/fastify",
-                  "corelens/framework-adapters/hono"
+                  "corelens/framework-adapters/hono",
+                  "corelens/framework-adapters/nestjs"
                 ]
               },
               {

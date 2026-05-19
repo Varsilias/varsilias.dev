@@ -25,7 +25,7 @@ metrics: { enabled: true, http: { enabled: true } },
 traces: { enabled: true, samplingRate: 1, http: { enabled: true } },
 ```
 
-Then register the matching metrics and tracing adapters for Express, Fastify, or Hono.
+Then register the matching metrics and tracing adapters for Express, Fastify, or Hono. In NestJS, import `CorelensModule` once and register `CorelensHttpInterceptor` globally with `app.useGlobalInterceptors(app.get(CorelensHttpInterceptor))`.
 
 ## Too much route noise
 
@@ -50,6 +50,36 @@ traces: {
 ```
 
 Health checks and scrape endpoints can dominate telemetry if they are not filtered.
+
+## NestJS `/metrics` hangs
+
+Avoid raw `@Res()` for Prometheus metrics unless you manually send the response or use `{ passthrough: true }`.
+
+Prefer Nest response handling:
+
+```ts
+@Get('/metrics')
+@Header('Content-Type', 'text/plain')
+getMetrics() {
+  return this.prometheus.render(this.corelens.metrics.snapshot());
+}
+```
+
+Raw `@Res()` without passthrough takes over the response. Returning a string after setting headers is not enough in that mode.
+
+## NestJS interceptor provider is missing
+
+`CorelensHttpInterceptor` is registered by `CorelensModule`. Import `CorelensModule.forRoot()` or `CorelensModule.forRootAsync()` once before calling `app.get(CorelensHttpInterceptor)`.
+
+## NestJS adapter cannot find `@nestjs/common`
+
+Nest runtime packages are optional for Corelens overall. Install Nest dependencies if the service imports from `@varsilias/corelens/adapter/nest`.
+
+```bash
+npm install @nestjs/common @nestjs/core @nestjs/platform-express reflect-metadata rxjs
+```
+
+If the service is not a Nest app, use `@varsilias/corelens/adapter` for Express, Fastify, or Hono adapters.
 
 ## OTLP export fails
 

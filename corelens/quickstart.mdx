@@ -26,9 +26,10 @@ Install a framework only when you use its adapter:
 npm install express
 npm install fastify
 npm install hono
+npm install @nestjs/common @nestjs/core @nestjs/platform-express reflect-metadata rxjs
 ```
 
-Express, Fastify, and Hono are optional peer dependencies. Corelens can run without a framework adapter.
+Express, Fastify, Hono, and Nest runtime packages are optional. Corelens can run without a framework adapter.
 
 ## Create a Corelens instance
 
@@ -144,7 +145,7 @@ process.on('SIGTERM', async () => {
 
 <CardGroup cols={2}>
   <Card title="Framework adapters" href="/corelens/framework-adapters/overview" icon="plug">
-    Add HTTP metrics and server spans to Express, Fastify, or Hono.
+    Add HTTP metrics and server spans to Express, Fastify, Hono, or NestJS.
   </Card>
   <Card title="Exporters" href="/corelens/concepts/exporters" icon="send">
     Send telemetry to console, file, or OTLP HTTP destinations.

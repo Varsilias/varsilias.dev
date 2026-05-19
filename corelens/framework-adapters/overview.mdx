@@ -1,11 +1,12 @@
 ---
 title: "Framework adapters"
-description: "Register Corelens HTTP metrics and tracing adapters for Express, Fastify, and Hono."
+description: "Register Corelens HTTP metrics and tracing adapters for Express, Fastify, Hono, and NestJS."
 sidebarTitle: "Overview"
 keywords:
   - Corelens Express
   - Corelens Fastify
   - Corelens Hono
+  - Corelens NestJS
   - Node.js HTTP metrics
   - HTTP tracing
 ---
@@ -16,7 +17,7 @@ Adapters are explicit. Register them where you create the app so the instrumenta
 
 ## Supported adapters
 
-<CardGroup cols={3}>
+<CardGroup cols={2}>
   <Card title="Express" href="/corelens/framework-adapters/express" icon="server">
     Register HTTP metrics and tracing for an Express app.
   </Card>
@@ -26,7 +27,16 @@ Adapters are explicit. Register them where you create the app so the instrumenta
   <Card title="Hono" href="/corelens/framework-adapters/hono" icon="route">
     Register HTTP metrics and tracing for a Hono app.
   </Card>
+  <Card title="NestJS" href="/corelens/framework-adapters/nestjs" icon="blocks">
+    Register Corelens through Nest dependency injection, logger integration, and an HTTP interceptor.
+  </Card>
 </CardGroup>
+
+## Entry points
+
+Express, Fastify, and Hono adapters are exported from `@varsilias/corelens/adapter`.
+
+NestJS support is exported from `@varsilias/corelens/adapter/nest` because it depends on Nest runtime packages such as `@nestjs/common`. Non-Nest services do not need to install Nest dependencies.
 
 ## Verification
 
@@ -42,6 +52,7 @@ After registering an adapter:
 - Registering adapters before creating the Corelens instance.
 - Enabling HTTP metrics in the adapter but not in `metrics.http`.
 - Enabling HTTP tracing in the adapter but not in `traces.http`.
+- Importing NestJS APIs from `@varsilias/corelens/adapter` instead of `@varsilias/corelens/adapter/nest`.
 - Exposing `/debug/stats` publicly.
 
 ## Next steps

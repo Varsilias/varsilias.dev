@@ -1,6 +1,6 @@
 ---
 title: "Installation"
-description: "Install Corelens and optional framework dependencies for Express, Fastify, and Hono adapters."
+description: "Install Corelens and optional framework dependencies for Express, Fastify, Hono, and NestJS adapters."
 sidebarTitle: "Installation"
 ---
 
@@ -18,6 +18,7 @@ Corelens adapters are explicit. Install a framework only when the service uses t
 npm install express
 npm install fastify
 npm install hono
+npm install @nestjs/common @nestjs/core @nestjs/platform-express reflect-metadata rxjs
 ```
 
 | Package | Needed when |
@@ -25,12 +26,14 @@ npm install hono
 | `express` | You register the Express metrics or tracing adapter |
 | `fastify` | You register the Fastify metrics or tracing adapter |
 | `hono` | You register the Hono metrics or tracing adapter |
+| `@nestjs/common` and Nest runtime packages | You import from `@varsilias/corelens/adapter/nest` |
 
 ## Package imports
 
 ```ts
 import { corelens, PrometheusTextExporter } from '@varsilias/corelens';
 import { ExpressMetricsAdapter } from '@varsilias/corelens/adapter';
+import { CorelensModule } from '@varsilias/corelens/adapter/nest';
 import type { CorelensConfig } from '@varsilias/corelens/core';
 ```
 
@@ -38,9 +41,12 @@ Published entry points:
 
 - `@varsilias/corelens`
 - `@varsilias/corelens/adapter`
+- `@varsilias/corelens/adapter/nest`
 - `@varsilias/corelens/core`
 - `@varsilias/corelens/exporters`
 - `@varsilias/corelens/modules`
+
+Express, Fastify, and Hono adapters remain under `@varsilias/corelens/adapter`. NestJS support is under `@varsilias/corelens/adapter/nest` so non-Nest adapter users do not load Nest-specific dependencies.
 
 ## Module format
 

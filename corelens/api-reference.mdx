@@ -11,6 +11,7 @@ This page is a compact reference for the public Corelens API shown throughout th
 ```ts
 import { corelens, PrometheusTextExporter } from '@varsilias/corelens';
 import { ExpressMetricsAdapter } from '@varsilias/corelens/adapter';
+import { CorelensModule } from '@varsilias/corelens/adapter/nest';
 import type { CorelensConfig } from '@varsilias/corelens/core';
 ```
 
@@ -18,9 +19,12 @@ Published entry points:
 
 - `@varsilias/corelens`
 - `@varsilias/corelens/adapter`
+- `@varsilias/corelens/adapter/nest`
 - `@varsilias/corelens/core`
 - `@varsilias/corelens/exporters`
 - `@varsilias/corelens/modules`
+
+Express, Fastify, and Hono adapters are exported from `@varsilias/corelens/adapter`. NestJS exports are isolated under `@varsilias/corelens/adapter/nest` because the Nest adapter depends on Nest runtime packages such as `@nestjs/common`.
 
 ## `corelens(config)`
 
@@ -104,6 +108,23 @@ const response = await lens.tracer.withClientSpan(
 const prometheus = new PrometheusTextExporter();
 const body = prometheus.render(lens.metrics.snapshot());
 ```
+
+## NestJS adapter
+
+```ts
+import {
+  CorelensModule,
+  CorelensService,
+  CorelensNestLogger,
+  CorelensHttpInterceptor,
+} from '@varsilias/corelens/adapter/nest';
+```
+
+`CorelensModule.forRoot()` registers Corelens in Nest dependency injection. `CorelensModule.forRootAsync()` supports factory-based async config through `imports`, `inject`, and `useFactory`.
+
+`CorelensService` exposes the Corelens logger, metrics registry, tracer, HTTP recorders, and `snapshot` stats accessor to injectable Nest providers. `CorelensNestLogger` implements Nest's `LoggerService`. `CorelensHttpInterceptor` records Nest HTTP metrics and tracing with parameterized route labels.
+
+See [NestJS adapter](/corelens/framework-adapters/nestjs) for setup, logger wiring, interceptor registration, and Prometheus endpoint guidance.
 
 ## Stats
 

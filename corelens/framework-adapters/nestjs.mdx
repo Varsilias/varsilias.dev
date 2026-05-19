@@ -1,0 +1,426 @@
+---
+title: "NestJS adapter"
+description: "Register Corelens in a NestJS application with dependency injection, Nest logger integration, HTTP metrics, and request tracing."
+sidebarTitle: "NestJS"
+keywords:
+  - Corelens NestJS
+  - NestJS observability
+  - NestJS metrics
+  - NestJS tracing
+  - NestJS logger
+---
+
+Use the NestJS adapter when your service is built with `@nestjs/core`.
+
+NestJS support is published from a dedicated entry point:
+
+```ts
+import {
+  CorelensModule,
+  CorelensService,
+  CorelensNestLogger,
+  CorelensHttpInterceptor,
+} from '@varsilias/corelens/adapter/nest';
+```
+
+Do not import NestJS APIs from `@varsilias/corelens/adapter`. The shared adapter barrel contains Express, Fastify, and Hono adapters. NestJS imports `@nestjs/common`, so its exports are isolated to avoid making non-Nest services install or load Nest runtime dependencies.
+
+## Install
+
+Install Corelens in the NestJS service you want to instrument.
+
+```bash
+npm install @varsilias/corelens
+```
+
+Nest projects usually already have the Nest runtime installed. For a standalone setup, install the typical Nest dependencies as well:
+
+```bash
+npm install @nestjs/common @nestjs/core @nestjs/platform-express reflect-metadata rxjs
+```
+
+`@nestjs/common` is an optional peer dependency of Corelens. You only need Nest packages when you use `@varsilias/corelens/adapter/nest`.
+
+## Register CorelensModule
+
+Use `CorelensModule.forRoot()` when the Corelens config is available at module load time.
+
+```ts
+// app.module.ts
+import { Module } from '@nestjs/common';
+import { CorelensModule } from '@varsilias/corelens/adapter/nest';
+
+@Module({
+  imports: [
+    CorelensModule.forRoot({
+      serviceName: 'nestjs-api',
+      logs: {
+        enabled: true,
+        format: 'json',
+        enrichWithTraceContext: true,
+      },
+      metrics: {
+        enabled: true,
+        http: {
+          enabled: true,
+          ignoredRoutes: ['/metrics', '/health'],
+        },
+      },
+      traces: {
+        enabled: true,
+        samplingRate: 1,
+        http: {
+          enabled: true,
+          ignoredRoutes: ['/metrics', '/health'],
+        },
+      },
+      export: {
+        enabled: true,
+        mode: 'batch',
+        destination: {
+          type: 'otlp-http',
+          endpoint: 'http://localhost:4318',
+        },
+      },
+      lifecycle: {
+        handleProcessSignals: true,
+      },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+`CorelensModule.forRoot()` registers the Corelens SDK in Nest dependency injection. The module is global, so after importing it once in the root module, exported providers can be injected elsewhere without re-importing the module.
+
+## Async configuration
+
+Use `CorelensModule.forRootAsync()` when config comes from `ConfigService`, environment loaders, secrets providers, or another Nest provider.
+
+The NestJS adapter supports factory-based async config:
+
+```ts
+CorelensModule.forRootAsync({
+  imports: [],
+  inject: [],
+  useFactory: async () => ({
+    serviceName: 'nestjs-api',
+    logs: { enabled: true },
+  }),
+});
+```
+
+`useClass` and `useExisting` are not part of the supported async API.
+
+```ts
+// app.module.ts
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CorelensModule } from '@varsilias/corelens/adapter/nest';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    CorelensModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        serviceName: config.get('SERVICE_NAME') ?? 'nestjs-api',
+        logs: {
+          enabled: true,
+          format: 'json',
+          enrichWithTraceContext: true,
+        },
+        metrics: {
+          enabled: true,
+          http: {
+            enabled: true,
+            ignoredRoutes: ['/metrics', '/health'],
+          },
+        },
+        traces: {
+          enabled: true,
+          samplingRate: Number(config.get('TRACE_SAMPLE_RATE') ?? 1),
+          http: {
+            enabled: true,
+            ignoredRoutes: ['/metrics', '/health'],
+          },
+        },
+        export: {
+          enabled: true,
+          mode: 'batch',
+          destination: {
+            type: 'otlp-http',
+            endpoint:
+              config.get('OTEL_EXPORTER_OTLP_ENDPOINT') ??
+              'http://localhost:4318',
+          },
+        },
+      }),
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+`imports` makes dependencies such as `ConfigModule` visible to the async factory. `inject` lists the dependencies passed into `useFactory`. The factory returns the normal Corelens config, synchronously or asynchronously. Nest resolves that config before constructing `CorelensService`.
+
+## Use CorelensService
+
+`CorelensService` is injectable in Nest providers and controllers. Use it when application code needs direct access to the Corelens logger, metrics registry, tracer, or HTTP recorders.
+
+```ts
+import { Injectable } from '@nestjs/common';
+import { CorelensService } from '@varsilias/corelens/adapter/nest';
+
+@Injectable()
+export class OrdersService {
+  constructor(private readonly corelens: CorelensService) {}
+
+  createOrder(orderId: string) {
+    this.corelens.logger.info('order created', { orderId });
+
+    this.corelens.metrics
+      .counter('orders_created_total', 'Orders created')
+      .inc(1, { route: 'orders' });
+
+    return { orderId };
+  }
+}
+```
+
+The service exposes:
+
+- `logger`
+- `metrics`
+- `tracer`
+- `httpMetricsRecorder`
+- `httpTracingRecorder`
+- `snapshot`
+
+`CorelensService` owns the underlying Corelens instance and shuts it down through Nest lifecycle hooks. It implements `OnModuleDestroy` and `BeforeApplicationShutdown`, and it guards against double shutdown internally.
+
+## Use Corelens as the Nest logger
+
+`CorelensNestLogger` implements Nest's `LoggerService`. Attach it in `main.ts` after creating the Nest app.
+
+```ts
+// main.ts
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { CorelensNestLogger } from '@varsilias/corelens/adapter/nest';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+
+  app.useLogger(app.get(CorelensNestLogger));
+
+  await app.listen(process.env.PORT ?? 3000);
+}
+
+bootstrap();
+```
+
+`bufferLogs: true` lets Nest buffer startup logs until the custom logger is attached. `CorelensNestLogger` maps Nest logs to the Corelens logger. Nest `verbose()` logs are recorded through `logger.info()`.
+
+## Enable HTTP metrics and tracing
+
+`CorelensHttpInterceptor` instruments Nest HTTP requests for request metrics, server spans, and stable route labels.
+
+```ts
+// main.ts
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import {
+  CorelensHttpInterceptor,
+  CorelensNestLogger,
+} from '@varsilias/corelens/adapter/nest';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+
+  app.useLogger(app.get(CorelensNestLogger));
+  app.useGlobalInterceptors(app.get(CorelensHttpInterceptor));
+
+  await app.listen(process.env.PORT ?? 3000);
+}
+
+bootstrap();
+```
+
+`CorelensHttpInterceptor` is registered as a provider by `CorelensModule`, so `app.get(CorelensHttpInterceptor)` works after importing `CorelensModule.forRoot()` or `CorelensModule.forRootAsync()` once.
+
+The interceptor only handles HTTP execution contexts. Non-HTTP contexts pass through. It uses Nest route metadata to record parameterized route labels such as `/users/:id`, not concrete paths such as `/users/123`.
+
+The interceptor does not auto-register globally. Enable it with `app.useGlobalInterceptors(app.get(CorelensHttpInterceptor))`.
+
+## HTTP metrics behavior
+
+With the interceptor enabled and `metrics.http.enabled: true`, Corelens records:
+
+```text
+http_requests_total{method,route,status}
+http_request_duration_seconds{method,route,status}
+```
+
+Example labels:
+
+```text
+method="GET"
+route="/users/:id"
+status="200"
+```
+
+Keep scrape and health routes out of request telemetry:
+
+```ts
+metrics: {
+  enabled: true,
+  http: {
+    enabled: true,
+    ignoredRoutes: ['/metrics', '/health'],
+  },
+}
+```
+
+Metrics are recorded even when tracing is disabled or when a trace span is not created.
+
+## HTTP tracing behavior
+
+With the interceptor enabled and `traces.http.enabled: true`, Corelens creates server spans for incoming Nest HTTP requests.
+
+Span attributes include:
+
+- `http.method`
+- `http.route`
+- `http.target`
+- `http.scheme`
+- `http.user_agent`
+- `http.status_code`
+
+The span name is produced by the tracing recorder as method plus route, for example `GET /users/:id`.
+
+```ts
+traces: {
+  enabled: true,
+  samplingRate: 1,
+  http: {
+    enabled: true,
+    ignoredRoutes: ['/metrics', '/health'],
+  },
+}
+```
+
+Ignored routes are respected independently for `metrics.http.ignoredRoutes` and `traces.http.ignoredRoutes`.
+
+## Expose Prometheus metrics
+
+Use Nest response handling for a Prometheus endpoint. `@Header()` sets the response content type while still letting Nest send the returned body.
+
+```ts
+import { Controller, Get, Header } from '@nestjs/common';
+import { CorelensService } from '@varsilias/corelens/adapter/nest';
+import { PrometheusTextExporter } from '@varsilias/corelens/exporters';
+
+@Controller()
+export class MetricsController {
+  private readonly prometheus = new PrometheusTextExporter();
+
+  constructor(private readonly corelens: CorelensService) {}
+
+  @Get('/metrics')
+  @Header('Content-Type', 'text/plain')
+  getMetrics() {
+    return this.prometheus.render(this.corelens.metrics.snapshot());
+  }
+}
+```
+
+Avoid raw `@Res()` unless you either use `{ passthrough: true }` or send the response manually. In Nest, `@Res()` without passthrough takes over the raw response. If the handler sets a header and returns a string without calling `res.send()`, the request can hang.
+
+## Expose debug stats
+
+`CorelensService.snapshot` returns the same operational stats as the core `lens.getStats()` API. Use it to inspect exporter failures, queue state, dropped items, shutdown results, and trace processor state while rolling out telemetry.
+
+```ts
+import { Controller, Get } from '@nestjs/common';
+import { CorelensService } from '@varsilias/corelens/adapter/nest';
+
+@Controller()
+export class DebugController {
+  constructor(private readonly corelens: CorelensService) {}
+
+  @Get('/debug/stats')
+  getStats() {
+    return this.corelens.snapshot;
+  }
+}
+```
+
+<Warning>
+  Do not expose `/debug/stats` publicly without authentication.
+</Warning>
+
+## Ignored routes
+
+Corelens normalizes Nest route metadata before matching and labeling routes. Root and top-level routes stay stable, so `/` and `/metrics` do not become `//` or `//metrics`.
+
+Configure ignored routes with the same route shape your controller exposes:
+
+```ts
+metrics: {
+  enabled: true,
+  http: {
+    enabled: true,
+    ignoredRoutes: ['/metrics', '/health'],
+  },
+},
+traces: {
+  enabled: true,
+  samplingRate: 1,
+  http: {
+    enabled: true,
+    ignoredRoutes: ['/metrics', '/health'],
+  },
+}
+```
+
+Dynamic controller routes should appear as trusted labels such as `/users/:id`, not high-cardinality labels such as `/users/123`.
+
+## Lifecycle and shutdown
+
+`CorelensService` owns shutdown for the Corelens instance created by `CorelensModule`. During Nest teardown it calls Corelens shutdown through `OnModuleDestroy` and `BeforeApplicationShutdown`.
+
+If you enable `lifecycle.handleProcessSignals: true`, keep shutdown ownership clear. Do not also add a second custom shutdown path that calls into the same Corelens instance.
+
+## Troubleshooting
+
+### `app.get(CorelensHttpInterceptor)` fails
+
+Import `CorelensModule.forRoot()` or `CorelensModule.forRootAsync()` once in the root module before calling `app.get(CorelensHttpInterceptor)`.
+
+### `/metrics` hangs
+
+Prefer `@Header('Content-Type', 'text/plain')` and return the rendered metrics string. If you use raw `@Res()`, call `res.send()` manually or use `{ passthrough: true }`.
+
+### `/metrics` appears in request metrics
+
+Configure the ignored route exactly as `/metrics`. Avoid trailing slash mismatches. The adapter normalizes Nest routes to stable labels before recording metrics and spans.
+
+### Metrics are missing when tracing is disabled
+
+Upgrade to Corelens `1.1.0` or later. The NestJS interceptor records HTTP metrics independently of trace span creation.
+
+### `Cannot find module '@nestjs/common'`
+
+Install Nest dependencies if this is a NestJS app. If the service is not using NestJS, import Express, Fastify, or Hono adapters from `@varsilias/corelens/adapter` instead of `@varsilias/corelens/adapter/nest`.
+
+### Route labels contain concrete IDs
+
+Nest route labels should use parameterized metadata such as `/users/:id`. If you see `/users/123`, confirm the route is declared with Nest controller decorators and that the global Corelens interceptor is the code path recording HTTP telemetry.
+
+## Next steps
+
+- [Metrics configuration](/corelens/configuration/metrics)
+- [Traces configuration](/corelens/configuration/traces)
+- [Troubleshooting](/corelens/troubleshooting)
