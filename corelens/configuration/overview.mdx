@@ -141,6 +141,10 @@ const lens = corelens({
 
 The top-level `export` block is optional. If you provide it, `enabled` must be explicit.
 
+<Warning>
+`export.enabled: true` only enables the export pipeline. It does not automatically export every signal. When you configure `export.signals.logs`, `export.signals.metrics`, or `export.signals.traces`, each one must also set `enabled: true`.
+</Warning>
+
 ```ts
 export: {
   enabled: true,
@@ -158,6 +162,11 @@ export: {
 ```
 
 Signal overrides under `export.signals` also require their own `enabled` flag.
+
+Think about export in two steps:
+
+- `logs.enabled`, `metrics.enabled`, and `traces.enabled` control what the service collects.
+- `export.enabled` plus `export.signals.<signal>.enabled` control what Corelens sends out of the process.
 
 ## Per-signal export destinations
 

@@ -14,6 +14,10 @@ Corelens supports:
 
 The top-level `export` block defines shared defaults. Enable each signal under `export.signals` when you want logs, metrics, or traces to use those defaults.
 
+<Warning>
+`export.enabled: true` is not enough on its own. It enables the exporter pipeline, but each configured signal under `export.signals` still needs its own `enabled: true`.
+</Warning>
+
 ## Console export
 
 Use console export for local development, smoke tests, and quick debugging.

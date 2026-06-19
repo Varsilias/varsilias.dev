@@ -10,6 +10,21 @@ The block is optional. If you omit it, export is disabled. If you provide it, `e
 
 Export is enabled per signal. The top-level `export` block defines shared destination and policy defaults. Enable `export.signals.logs`, `export.signals.metrics`, or `export.signals.traces` for the telemetry you want to send.
 
+<Warning>
+`export.enabled: true` does not export logs, metrics, or traces by itself. It only turns on the export pipeline. Each signal you configure under `export.signals` must also set `enabled: true` or that signal will not be exported.
+</Warning>
+
+## Export has two gates
+
+Corelens treats signal collection and signal export as separate decisions.
+
+| Gate | Config | What it does |
+|------|--------|--------------|
+| Collection | `logs.enabled`, `metrics.enabled`, `traces.enabled` | Turns local telemetry generation on or off. |
+| Export | `export.enabled` and `export.signals.<signal>.enabled` | Turns outbound delivery on and selects which collected signals leave the process. |
+
+If you collect traces with `traces.enabled: true` but omit `export.signals.traces.enabled`, Corelens can still create spans locally, but it will not export them.
+
 ## Options
 
 | Option | Type | Accepted values | Default | What it controls |
@@ -183,6 +198,47 @@ signals: {
 ```
 
 Signal overrides require their own `enabled` flag.
+
+## Common pitfall
+
+This looks close to correct, but it does not export traces because the override exists without `enabled: true`:
+
+```ts
+export: {
+  enabled: true,
+  destination: {
+    type: 'otlp-http',
+    endpoint: 'http://localhost:4318',
+  },
+  signals: {
+    traces: {
+      batch: {
+        scheduledDelayMs: 2000,
+      },
+    },
+  },
+}
+```
+
+Use this instead:
+
+```ts
+export: {
+  enabled: true,
+  destination: {
+    type: 'otlp-http',
+    endpoint: 'http://localhost:4318',
+  },
+  signals: {
+    traces: {
+      enabled: true,
+      batch: {
+        scheduledDelayMs: 2000,
+      },
+    },
+  },
+}
+```
 
 ## Common mistakes
 
